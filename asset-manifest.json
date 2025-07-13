@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/AlgoCore2/static/css/main.da6bd5eb.css",
-    "main.js": "/AlgoCore2/static/js/main.130490af.js",
+    "main.js": "/AlgoCore2/static/js/main.1a1dccca.js",
     "static/js/547.97ae2ab3.chunk.js": "/AlgoCore2/static/js/547.97ae2ab3.chunk.js",
     "static/js/409.43ba0110.chunk.js": "/AlgoCore2/static/js/409.43ba0110.chunk.js",
     "static/js/703.d175c84f.chunk.js": "/AlgoCore2/static/js/703.d175c84f.chunk.js",
@@ -14,7 +14,7 @@
     "static/js/355.bc561f1c.chunk.js": "/AlgoCore2/static/js/355.bc561f1c.chunk.js",
     "index.html": "/AlgoCore2/index.html",
     "main.da6bd5eb.css.map": "/AlgoCore2/static/css/main.da6bd5eb.css.map",
-    "main.130490af.js.map": "/AlgoCore2/static/js/main.130490af.js.map",
+    "main.1a1dccca.js.map": "/AlgoCore2/static/js/main.1a1dccca.js.map",
     "547.97ae2ab3.chunk.js.map": "/AlgoCore2/static/js/547.97ae2ab3.chunk.js.map",
     "409.43ba0110.chunk.js.map": "/AlgoCore2/static/js/409.43ba0110.chunk.js.map",
     "703.d175c84f.chunk.js.map": "/AlgoCore2/static/js/703.d175c84f.chunk.js.map",
@@ -28,6 +28,6 @@
   },
   "entrypoints": [
     "static/css/main.da6bd5eb.css",
-    "static/js/main.130490af.js"
+    "static/js/main.1a1dccca.js"
   ]
 }
