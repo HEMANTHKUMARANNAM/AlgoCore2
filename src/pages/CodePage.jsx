@@ -210,9 +210,11 @@ function CodePage() {
 
   // Fixed loadCode function
   const loadCode = useCallback(async () => {
+          if (!user?.user?.uid) return;
+
     try {
       const dbRef = ref(database);
-      const codeKey = `savedCode/${course}/${questionId}/${selectedLanguage}`;
+      const codeKey = `savedCode/${user?.user?.uid}/${course}/${questionId}/${selectedLanguage}`;
       const snapshot = await get(child(dbRef, codeKey));
 
       console.log(snapshot.val());

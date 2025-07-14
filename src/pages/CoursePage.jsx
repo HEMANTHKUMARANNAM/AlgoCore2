@@ -1,267 +1,3 @@
-// import React, { useState, useEffect } from 'react';
-// import { FaChevronRight, FaStar, FaBook, FaAward, FaChevronDown } from 'react-icons/fa';
-// // Import your Firebase dependencies
-// import { ref, get, child } from 'firebase/database';
-// import { database } from '../firebase'; // Adjust path as needed
-// // import { useNavigate } from "react-router-dom";
-// import { useParams, useNavigate } from "react-router-dom";
-// import { languageTemplates } from './constants';
-
-// const PythonCoursePage = () => {
-//   const [courseData, setCourseData] = useState(null);
-//   const [practiceTopics, setPracticeTopics] = useState([]);
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState(null);
-//   const [openTopic, setOpenTopic] = useState(null);
-
-
-//   const { course } = useParams();
-
-//   const navigate = useNavigate();
-
-
-//   // Helper functions for Firebase data processing
-//   const getDifficulty = (topicKey, problemData) => {
-//     // Add your logic to determine difficulty
-//     return problemData.difficulty || 'Easy';
-//   };
-
-//   const formatTopicTitle = (topicKey, description) => {
-//     // Add your logic to format topic titles
-//     return topicKey;
-//   };
-
-//   const cleanQuestionText = (question) => {
-//     // Add your logic to clean question text
-//     return question;
-//   };
-
-
-  
-
-  
-
-
-
-
-//   // Fetch practice topics from Firebase
-//   const fetchPracticeTopics = async () => {
-//     try {
-//       const dbRef = ref(database);
-//       const snapshot = await get(child(dbRef, `/AlgoCore/${course}/lessons`));
-
-//       console.log(`/AlgoCore/${course}`);
-
-//       if (!snapshot.exists()) {
-//         console.log('No data available');
-//         return [];
-//       }
-
-//       console.log(snapshot.val());
-
-//       const data = snapshot.val();
-//       const practiceTopics = [];
-
-//       // Process each topic
-//       Object.keys(data).forEach(topicKey => {
-//         const topicData = data[topicKey];
-
-//         // Skip if it's not a topic object
-//         if (typeof topicData !== 'object' || !topicData.description) {
-//           return;
-//         }
-
-//         const problems = [];
-
-//         console.log(topicData);
-
-//         topicData.questions.forEach(problemData => {
-//           console.log(problemData);
-
-//           problems.push({
-//             name: problemData,
-//             status: 'Not Started', // Default status
-//             difficulty: "Easy",
-//             question: cleanQuestionText(problemData),
-//           });
-//         });
-
-//         // Create the topic object
-//         practiceTopics.push({
-//           title: formatTopicTitle(topicKey, topicData.description),
-//           description: topicData.description,
-//           problems: problems
-//         });
-//       });
-
-
-//       console.log(practiceTopics);
-
-//       return practiceTopics;
-//     } catch (error) {
-//       console.error('Error fetching data from Firebase:', error);
-//       throw error;
-//     }
-//   };
-
-
-
-//   useEffect(() => {
-//     const fetchAllData = async () => {
-//       try {
-//         setLoading(true);
-
-//         // Fetch course data
-//         const courseResponse = await fetch(`/data/${course}Course.json`);
-//         if (!courseResponse.ok) {
-//           throw new Error('Failed to fetch course data');
-//         }
-//         const courseData = await courseResponse.json();
-//         setCourseData(courseData);
-
-//         // Fetch practice topics from Firebase
-//         const topics = await fetchPracticeTopics();
-//         setPracticeTopics(topics.length > 0 ? topics : null);
-
-//       } catch (err) {
-//         console.error('Error fetching data:', err);
-//         setError(err.message);
-//         // Use fallback data if Firebase fails
-//         setPracticeTopics(null);
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-
-//     fetchAllData();
-
-
-
-//   }, []); // Empty dependency array - this effect should only run once
-
-//   if (loading) {
-//     return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
-//   }
-
-//   if (error) {
-//     return <div className="flex justify-center items-center min-h-screen">Error: {error}</div>;
-//   }
-
-//   if (!courseData) {
-//     return null;
-//   }
-
-//   const { title, description, stats, problems, roadmap } = courseData;
-
-//   return (
-//     <div className="bg-gray-50 dark:bg-dark-primary text-gray-900 dark:text-gray-100 min-h-screen">
-//       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-//         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-//           {/* Main Content */}
-//           <div className="lg:col-span-2">
-//             <div className="flex items-center mb-4">
-//               <div className="bg-blue-100 dark:bg-blue-900/50 p-3 rounded-lg mr-4">
-//                 <FaBook className="w-8 h-8 text-blue-600 dark:text-blue-400" />
-//               </div>
-//               <h1 className="text-4xl font-bold">{title}</h1>
-//             </div>
-//             <p className="text-gray-600 dark:text-gray-300 mb-4">{description}</p>
-
-//             <div className="flex items-center space-x-6 text-sm text-gray-600 dark:text-gray-400 mb-6">
-//               <span>{stats.problems}</span>
-//               <span>{stats.level}</span>
-//             </div>
-
-//             <button className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors mb-6">
-//               Start My Journey
-//             </button>
-
-//             <div className="border-t border-b border-gray-200 dark:border-dark-tertiary py-4 mb-8">
-//               <p className="text-sm text-gray-500 dark:text-gray-400">Please <a href="/login" className="text-blue-600 dark:text-blue-400 hover:underline">login</a> to see the progress</p>
-//             </div>
-
-//             <h2 className="text-2xl font-bold mb-4">Problems</h2>
-//             <div className="space-y-4">
-//               {practiceTopics.map((topic, index) => (
-//                 <div key={index} className="bg-white dark:bg-dark-tertiary rounded-lg shadow-sm border border-gray-200 dark:border-dark-tertiary">
-//                   <div
-//                     className="p-4 flex justify-between items-center cursor-pointer"
-//                     onClick={() => setOpenTopic(openTopic === index ? null : index)}
-//                   >
-//                     <div className="flex items-center">
-//                       <div className="bg-gray-100 dark:bg-dark-tertiary rounded-full w-10 h-10 flex items-center justify-center mr-4 font-bold text-lg">{index + 1}</div>
-//                       <div>
-//                         <h3 className="font-semibold text-lg">{topic.title}</h3>
-//                         <p className="text-sm text-gray-500 dark:text-gray-400">{topic.description}</p>
-//                       </div>
-//                     </div>
-//                     <FaChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${openTopic === index ? 'rotate-180' : ''}`} />
-//                   </div>
-//                   {openTopic === index && topic.problems.length > 0 && (
-//                     <div className="border-t border-gray-200 dark:border-dark-tertiary">
-//                       <table className="w-full text-left text-sm">
-//                         <thead className="text-gray-500 dark:text-gray-400">
-//                           <tr>
-//                             <th className="p-4 font-medium">Problem Name</th>
-//                             <th className="p-4 font-medium">Status</th>
-//                             <th className="p-4 font-medium">Difficulty</th>
-//                           </tr>
-//                         </thead>
-//                         <tbody>
-//                           {topic.problems.map((problem, pIndex) => (
-//                             <tr key={pIndex} className="border-t border-gray-200 dark:border-dark-tertiary hover:bg-gray-50 dark:hover:bg-gray-700/50">
-//                               <td className="p-4 text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
-
-//                                 onClick={() => navigate(`/problem/${course}/${topic.title}/${problem.name}`)} // Navigate on click
-
-
-//                               >{problem.name}</td>
-
-//                               <td className="p-4">{problem.status}</td>
-//                               <td className="p-4 text-green-600 dark:text-green-400">{problem.difficulty}</td>
-//                             </tr>
-//                           ))}
-//                         </tbody>
-//                       </table>
-//                     </div>
-//                   )}
-//                 </div>
-//               ))}
-//             </div>
-//           </div>
-
-//           {/* Sidebar */}
-//           <div className="space-y-8">
-//             <div className="bg-white dark:bg-dark-tertiary p-6 rounded-lg shadow-sm border border-gray-200 dark:border-dark-tertiary">
-//               <div className="flex items-start">
-//                 <FaAward className="w-10 h-10 text-yellow-500 mr-4" />
-//                 <div>
-//                   <h3 className="font-bold">Earn certificate after completing all the problems.</h3>
-//                 </div>
-//               </div>
-//             </div>
-
-//             <div className="bg-white dark:bg-dark-tertiary p-6 rounded-lg shadow-sm border border-gray-200 dark:border-dark-tertiary">
-//               <h3 className="font-bold mb-2">{roadmap.title}</h3>
-//               <div className="space-y-2">
-//                 {roadmap.courses.map((course, index) => (
-//                   <div key={index} className="flex justify-between items-center cursor-pointer p-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700/50">
-//                     <span>{course.name}</span>
-//                     <span className="text-sm text-gray-500 dark:text-gray-400">{course.details}</span>
-//                   </div>
-//                 ))}
-//               </div>
-//               <a href="#" className="text-blue-600 dark:text-blue-400 font-semibold text-sm mt-4 inline-block hover:underline">View Roadmap &gt;</a>
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default PythonCoursePage;
-
 
 
 import React, { useState, useEffect } from 'react';
@@ -271,7 +7,7 @@ import { database } from '../firebase';
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from '../context/AuthContext';
 
-const PythonCoursePage = () => {
+const CoursePage = () => {
   const [courseData, setCourseData] = useState(null);
   const [practiceTopics, setPracticeTopics] = useState([]);
   const [userProgress, setUserProgress] = useState({});
@@ -324,7 +60,7 @@ const PythonCoursePage = () => {
 
       console.log(data);
 
-    
+
       // Process each topic
       Object.keys(data).forEach(topicKey => {
         const topicData = data[topicKey];
@@ -408,47 +144,20 @@ const PythonCoursePage = () => {
 
 
   useEffect(() => {
-    // const fetchAllData = async () => {
-    //   try {
-    //     setLoading(true);
-
-    //     const courseResponse = await fetch(`/data/${course}Course.json`);
-    //     if (!courseResponse.ok) {
-    //       throw new Error('Failed to fetch course data');
-    //     }
-    //     const courseData = await courseResponse.json();
-    //     setCourseData(courseData);
-
-    //     const topics = await fetchPracticeTopics();
-    //     setPracticeTopics(topics.length > 0 ? topics : null);
-
-    //     return topics.length > 0 ? topics : null;
-
-
-
-    //   } catch (err) {
-    //     console.error('Error fetching data:', err);
-    //     setError(err.message);
-    //     setPracticeTopics(null);
-    //   } finally {
-    //     setLoading(false);
-    //   }
-    // };
 
     async function executeAfterBoth() {
       try {
         setLoading(true);
 
-          const dbRef = ref(database);
-          const snapshot = await get(child(dbRef, `AlgoCore/${course}/course`));
+        const dbRef = ref(database);
+        const snapshot = await get(child(dbRef, `AlgoCore/${course}/course`));
 
-          if( snapshot.exists() )
-          {
-              const data = snapshot.val();
-              setCourseData(data);
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          setCourseData(data);
 
-          }
-          else {
+        }
+        else {
           throw new Error('Failed to fetch course data');
         }
 
@@ -498,9 +207,9 @@ const PythonCoursePage = () => {
   const totalProblems = practiceTopics.reduce((count, topic) => count + topic.problems.length, 0);
 
   const completedProblems = practiceTopics.reduce(
-  (count, topic) => count + topic.problems.filter(p => p.status === 'Completed').length,
-  0
-);
+    (count, topic) => count + topic.problems.filter(p => p.status === 'Completed').length,
+    0
+  );
 
 
   return (
@@ -626,4 +335,4 @@ const PythonCoursePage = () => {
   );
 };
 
-export default PythonCoursePage;
+export default CoursePage;

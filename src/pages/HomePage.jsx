@@ -89,7 +89,7 @@ function HomePage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <button
-                onClick={() => navigate('/algorithms')}
+                onClick={() => navigate('/courses')}
                 className="bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-3 px-8 rounded-full hover:from-blue-700 hover:to-purple-700 transition duration-300 shadow-lg"
               >
                 Start Learning

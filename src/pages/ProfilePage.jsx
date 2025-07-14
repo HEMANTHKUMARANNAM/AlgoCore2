@@ -418,9 +418,7 @@ function ProfilePage() {
                   <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                     {profileData.username}
                   </h1>
-                  <button className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-                    <Icons.Edit />
-                  </button>
+                
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -487,16 +485,7 @@ function ProfilePage() {
               >
                 Submissions
               </button>
-              <button
-                className={`px-6 py-4 text-sm font-medium transition-all duration-200 ${
-                  activeTab === "settings"
-                    ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50/50 dark:bg-blue-900/20"
-                    : "text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
-                }`}
-                onClick={() => setActiveTab("settings")}
-              >
-                Settings
-              </button>
+            
             </div>
 
             <div className="p-8">
@@ -715,116 +704,7 @@ function ProfilePage() {
                 </div>
               )}
 
-              {activeTab === "settings" && (
-                <div className="max-w-3xl">
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-8">
-                    Settings
-                  </h3>
-
-                  <div className="space-y-8">
-                    {/* Profile Settings */}
-                    <div className="bg-white/50 dark:bg-gray-700/50 rounded-xl p-6 border border-gray-200/50 dark:border-gray-600/50">
-                      <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                        <Icons.Edit />
-                        Profile Settings
-                      </h4>
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Username
-                          </label>
-                          <input
-                            type="text"
-                            defaultValue={profileData.username}
-                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white/70 dark:bg-gray-800/70 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Email
-                          </label>
-                          <input
-                            type="email"
-                            defaultValue={profileData.email}
-                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white/70 dark:bg-gray-800/70 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Bio
-                          </label>
-                          <textarea
-                            rows={3}
-                            defaultValue={profileData.bio}
-                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white/70 dark:bg-gray-800/70 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          />
-                        </div>
-                        <button className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200">
-                          Update Profile
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Appearance Settings */}
-                    <div className="bg-white/50 dark:bg-gray-700/50 rounded-xl p-6 border border-gray-200/50 dark:border-gray-600/50">
-                      <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                        <Icons.Eye />
-                        Appearance
-                      </h4>
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                              Dark Mode
-                            </label>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">
-                              Toggle between light and dark themes
-                            </p>
-                          </div>
-                          <button
-                            onClick={() => setIsDarkMode(!isDarkMode)}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                              isDarkMode ? "bg-blue-600" : "bg-gray-200"
-                            }`}
-                          >
-                            <span
-                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                                isDarkMode ? "translate-x-6" : "translate-x-1"
-                              }`}
-                            />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Danger Zone */}
-                    <div className="bg-red-50/50 dark:bg-red-900/20 rounded-xl p-6 border border-red-200/50 dark:border-red-800/50">
-                      <h4 className="text-lg font-medium text-red-700 dark:text-red-400 mb-4">
-                        Danger Zone
-                      </h4>
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <label className="block text-sm font-medium text-red-700 dark:text-red-400 mb-1">
-                              Delete Account
-                            </label>
-                            <p className="text-sm text-red-600 dark:text-red-500">
-                              Permanently delete your account and all associated
-                              data
-                            </p>
-                          </div>
-                          <button
-                            onClick={logout}
-                            className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-red-700 transition-colors"
-                          >
-                            Logout
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
+            
             </div>
           </div>
         </div>
