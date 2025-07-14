@@ -248,10 +248,6 @@ const CoursePage = () => {
             </div>
 
 
-            <button className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors mb-6">
-              Start My Journey
-            </button>
-
             {!user && (
               <div className="border-t border-b border-gray-200 dark:border-dark-tertiary py-4 mb-8">
                 <p className="text-sm text-gray-500 dark:text-gray-400">

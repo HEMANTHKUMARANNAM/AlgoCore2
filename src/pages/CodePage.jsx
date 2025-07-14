@@ -142,7 +142,13 @@ function CodePage() {
         `userprogress/${user.user.uid}/${course}/${subcourse}/${questionId}`
       );
 
-      await set(progressRef, isCorrect);  // 🔥 just true or false, no object
+      const snapshot = await get(progressRef);
+
+      if (snapshot.exists() && snapshot.val() === true) {
+        return; // 🔥 already completed, don't update
+      }
+
+      await set(progressRef, isCorrect);
       console.log(` userprogress saved: ${questionId} = ${isCorrect}`);
     } catch (error) {
       console.error(" Error saving user progress:", error);

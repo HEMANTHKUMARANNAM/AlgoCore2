@@ -42,7 +42,7 @@ function App() {
               <Route path="/problem/:course/:subcourse/:questionId" element={<DynamicComponent />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/courses" element={<CoursesPage />} />
-              <Route path="/courses/:course" element={<CoursePage />} />
+              <Route path="/course/:course" element={<CoursePage />} />
               <Route path="/about" element={<AboutPage />} />
               <Route path="/contact" element={<ContactPage />} />
               <Route path="/login" element={<LoginPage />} />
