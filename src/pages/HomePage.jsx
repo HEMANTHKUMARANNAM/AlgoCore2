@@ -5,7 +5,16 @@ import Footer from '../components/Footer';
 
 function HomePage() {
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
+  const { user, loading } = useAuth();
+
+  // Show loading spinner while auth state is loading
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
 
   const subjects = [
     {
@@ -21,32 +30,32 @@ function HomePage() {
     {
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
         </svg>
       ),
-      title: 'Database & SQL',
-      description: 'Learn database design, optimization, and SQL through practical exercises.',
-      path: '/database'
+      title: 'System Design',
+      description: 'Learn to design scalable and efficient systems with real-world case studies.',
+      path: '/system-design'
     },
     {
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
         </svg>
       ),
-      title: 'Web Development',
-      description: 'Build and deploy web applications with modern frameworks and best practices.',
-      path: '/web-dev'
+      title: 'Database Systems',
+      description: 'Understand database design, query optimization, and transaction management.',
+      path: '/databases'
     },
     {
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
         </svg>
       ),
-      title: 'Security & Cryptography',
-      description: 'Explore security concepts and cryptographic algorithms through hands-on coding.',
-      path: '/security'
+      title: 'Concurrency',
+      description: 'Master multi-threading, parallel computing, and synchronization techniques.',
+      path: '/concurrency'
     }
   ];
 
@@ -62,66 +71,110 @@ function HomePage() {
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 relative overflow-x-hidden flex flex-col">
       <main className="flex-grow">
-        {/* Grid background */}
-        <div className="absolute inset-0 w-full h-full pointer-events-none z-0">
-          <div className="w-full h-full bg-[linear-gradient(to_right,rgba(0,0,0,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,0,0,0.04)_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:32px_32px]" />
-        </div>
+        {/* Decorative Elements */}
+        <div className="absolute top-0 left-0 w-full h-[40vh] bg-gradient-to-br from-blue-600/10 to-purple-600/10 dark:from-blue-900/30 dark:to-purple-900/30 rounded-b-[60%] z-0" />
+        <div className="absolute top-[20vh] right-0 w-64 h-64 bg-gradient-to-r from-yellow-400/20 to-red-500/20 dark:from-yellow-600/20 dark:to-red-600/20 rounded-full blur-3xl z-0" />
+
         {/* Hero Section */}
         <section className="relative z-10 flex items-center justify-center min-h-[60vh] py-16 px-4 sm:px-6 lg:px-8">
           <div className="w-full flex flex-col items-center justify-center text-center">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-2">Master Programming with AlgoCore</h1>
-            <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-[#4285F4] mb-4">Bored of Theory? Let's Code for Real</h2>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-2">
+              Welcome{user ? `, ${user.name}` : ''} to AlgoCore
+            </h1>
+            <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-[#4285F4] mb-4">
+              Bored of Theory? Let's Code for Real
+            </h2>
             <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto mb-8">
               Kickstart Your Coding Journey — No Boring Lectures, Just Real Practice!
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              {isAuthenticated ? (
-                <>
-                  <button
-                    onClick={() => navigate('/profile')}
-                    className="w-full sm:w-auto bg-[#4285F4] text-white px-8 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 hover:bg-[#357ae8] transition-colors shadow-sm hover:shadow-md text-lg"
-                  >
-                    View Profile
-                  </button>
-                  <Link
-                    to="/courses"
-                    className="w-full sm:w-auto bg-white dark:bg-gray-800 text-[#4285F4] border border-[#4285F4] px-8 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 hover:bg-[#4285F4]/10 transition-colors shadow-sm hover:shadow-md text-lg"
-                  >
-                    Explore Courses
-                  </Link>
-                </>
-              ) : (
-                <>
-                  <button
-                    onClick={() => navigate('/login')}
-                    className="w-full sm:w-auto bg-[#4285F4] text-white px-8 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 hover:bg-[#357ae8] transition-colors shadow-sm hover:shadow-md text-lg"
-                  >
-                    <svg className="w-6 h-6" viewBox="0 0 24 24">
-                      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                    </svg>
-                    Sign in
-                  </button>
-                  <Link
-                    to="/courses"
-                    className="w-full sm:w-auto bg-white dark:bg-gray-800 text-[#4285F4] border border-[#4285F4] px-8 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 hover:bg-[#4285F4]/10 transition-colors shadow-sm hover:shadow-md text-lg"
-                  >
-                    Explore Courses
-                  </Link>
-                </>
-              )}
+            <div className="flex flex-col sm:flex-row gap-4">
+              <button
+                onClick={() => navigate('/algorithms')}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-3 px-8 rounded-full hover:from-blue-700 hover:to-purple-700 transition duration-300 shadow-lg"
+              >
+                Start Learning
+              </button>
+              <button
+                onClick={() => navigate(user ? '/profile' : '/login')}
+                className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-semibold py-3 px-8 rounded-full border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-300 shadow-lg"
+              >
+                {user ? 'View Profile' : 'Sign In'}
+              </button>
             </div>
           </div>
         </section>
 
-        {/* Decorative Elements */}
-        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-          <div className="absolute -top-40 -left-40 w-80 h-80 bg-blue-100 dark:bg-blue-900/20 rounded-full blur-3xl opacity-50" />
-          <div className="absolute -bottom-40 -right-40 w-80 h-80 bg-blue-100 dark:bg-blue-900/20 rounded-full blur-3xl opacity-50" />
-        </div>
+        {/* Subjects Section */}
+        {/* <section className="relative z-10 py-16 px-4 sm:px-6 lg:px-8 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
+          <div className="max-w-7xl mx-auto">
+            <h2 className="text-3xl font-bold text-center text-gray-900 dark:text-white mb-12">
+              Explore Our Learning Paths
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {subjects.map((subject, index) => (
+                <div
+                  key={index}
+                  className="bg-gradient-to-br from-white/80 to-gray-100/80 dark:from-gray-800/80 dark:to-gray-900/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50 dark:border-gray-700/50 shadow-lg hover:shadow-xl transition-shadow duration-300"
+                >
+                  <div className="text-blue-600 dark:text-blue-400 mb-4">
+                    {subject.icon}
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{subject.title}</h3>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">{subject.description}</p>
+                  <Link
+                    to={subject.path}
+                    className="inline-flex items-center text-blue-600 dark:text-blue-400 font-medium hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
+                  >
+                    Explore Path
+                    <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section> */}
+
+        {/* Languages Section */}
+        <section className="relative z-10 py-16 px-4 sm:px-6 lg:px-8 bg-gray-50/50 dark:bg-gray-800/50 backdrop-blur-sm">
+          <div className="max-w-7xl mx-auto">
+            <h2 className="text-3xl font-bold text-center text-gray-900 dark:text-white mb-12">
+              Learn in Your Favorite Language
+            </h2>
+            <div className="flex flex-wrap justify-center gap-6">
+              {languages.map((language, index) => (
+                <div
+                  key={index}
+                  className="flex flex-col items-center justify-center bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-6 w-32 h-32 border border-gray-200/50 dark:border-gray-700/50 shadow-lg hover:shadow-xl transition-shadow duration-300"
+                >
+                  <span className="text-3xl mb-2">{language.icon}</span>
+                  <span className="text-lg font-medium text-gray-900 dark:text-white">{language.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* CTA Section */}
+        <section className="relative z-10 py-16 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto text-center bg-gradient-to-r from-blue-600 to-purple-600 rounded-3xl p-12 shadow-2xl">
+            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+              Ready to Master Algorithms?
+            </h2>
+            <p className="text-xl text-blue-100 max-w-2xl mx-auto mb-8">
+              Join thousands of developers who've transformed their coding skills with AlgoCore.
+            </p>
+            <button
+              onClick={() => navigate(user ? '/courses' : '/signup')}
+              className="bg-white text-blue-600 font-bold py-4 px-12 rounded-full hover:bg-blue-50 transition duration-300 shadow-lg text-lg"
+            >
+              {user ? 'Continue Learning' : 'Get Started for Free'}
+            </button>
+          </div>
+        </section>
       </main>
+
       <Footer />
     </div>
   );

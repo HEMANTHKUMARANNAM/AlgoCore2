@@ -102,7 +102,12 @@ const Navbar = () => {
                     ref={authDropdownRef}
                     className="absolute top-12 right-0 w-60 bg-white dark:bg-dark-secondary rounded-lg shadow-lg border border-gray-200 dark:border-dark-tertiary py-2 animate-fadeIn"
                   >
-                    <div className="px-4 py-2 border-b border-gray-100 dark:border-dark-tertiary">
+                    <div
+                      className="px-4 py-2 border-b border-gray-100 dark:border-dark-tertiary cursor-pointer"
+                      onClick={() => {
+                        navigate('/profile');
+                      }}
+                    >
                       <p className="text-sm font-semibold text-gray-900 dark:text-white">{user.name || 'User'}</p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
                     </div>

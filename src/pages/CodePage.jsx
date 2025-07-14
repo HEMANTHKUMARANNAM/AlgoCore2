@@ -235,8 +235,10 @@ function CodePage() {
 
   // Fixed saveCode function
   const saveCode = useCallback(async (codeToSave) => {
+      if (!user?.user?.uid) return;
+
     try {
-      const codeKey = `savedCode/${course}/${questionId}/${selectedLanguage}`;
+      const codeKey = `savedCode/${user?.user?.uid}/${course}/${questionId}/${selectedLanguage}`;
       const dbRef = ref(database, codeKey);
       await set(dbRef, codeToSave);
       console.log("Code auto-saved successfully!");
