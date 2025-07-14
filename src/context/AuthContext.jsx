@@ -15,7 +15,9 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log('Setting up auth state listener');
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      console.log('Auth state changed:', firebaseUser);
       if (firebaseUser) {
         setUser({
           uid: firebaseUser.uid,
@@ -24,12 +26,16 @@ export const AuthProvider = ({ children }) => {
           photoURL: firebaseUser.photoURL
         });
       } else {
+        console.log('No user found, setting user to null');
         setUser(null);
       }
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      console.log('Cleaning up auth state listener');
+      unsubscribe();
+    };
   }, []);
 
   const googleSignIn = async () => {

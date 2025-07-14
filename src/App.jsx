@@ -21,7 +21,7 @@ const LoginPage = lazy(() => import('./pages/LoginPage'));
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename='/AlgoCore2' >
       {/* Layout Wrapper */}
       <div className="min-h-screen flex flex-col bg-[#F8F9FA] dark:bg-dark-primary transition-colors duration-200">
         
