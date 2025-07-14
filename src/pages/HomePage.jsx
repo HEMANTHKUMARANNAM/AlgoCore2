@@ -156,23 +156,7 @@ function HomePage() {
           </div>
         </section>
 
-        {/* CTA Section */}
-        <section className="relative z-10 py-16 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto text-center bg-gradient-to-r from-blue-600 to-purple-600 rounded-3xl p-12 shadow-2xl">
-            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-              Ready to Master Algorithms?
-            </h2>
-            <p className="text-xl text-blue-100 max-w-2xl mx-auto mb-8">
-              Join thousands of developers who've transformed their coding skills with AlgoCore.
-            </p>
-            <button
-              onClick={() => navigate(user ? '/courses' : '/signup')}
-              className="bg-white text-blue-600 font-bold py-4 px-12 rounded-full hover:bg-blue-50 transition duration-300 shadow-lg text-lg"
-            >
-              {user ? 'Continue Learning' : 'Get Started for Free'}
-            </button>
-          </div>
-        </section>
+       
       </main>
 
       <Footer />

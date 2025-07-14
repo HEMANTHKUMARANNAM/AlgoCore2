@@ -1,9 +1,31 @@
-
 import React, { useState, useEffect } from "react";
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
 import { ref, get, child } from "firebase/database";
 import { database } from "../firebase";
+import { Line } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+} from 'chart.js';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 // SVG Icons
 const Icons = {
@@ -218,6 +240,12 @@ const formatFirebaseTimestamp = (timestampKey) => {
   });
 };
 
+// Format join date from timestamp
+const formatJoinDate = (timestamp) => {
+  if (!timestamp) return "Unknown";
+  const date = new Date(timestamp);
+  return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+};
 
 
 function ProfilePage() {
@@ -226,15 +254,127 @@ function ProfilePage() {
   const [activeTab, setActiveTab] = useState("overview");
   const [isDarkMode, setIsDarkMode] = useState(theme === "dark");
   const [profileData, setProfileData] = useState(null);
+  const [timeFilter, setTimeFilter] = useState('hourly');
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const now = new Date();
+    return now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  });
+  // Add useState for submissionStats
+  const [submissionStats, setSubmissionStats] = useState({
+    labels: [],
+    data: []
+  });
 
-  // Format join date from timestamp
-  const formatJoinDate = (timestamp) => {
-    if (!timestamp) return "Unknown";
-    const date = new Date(timestamp);
-    return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  // Helper to get all dates from start of month to today
+  const getMonthDates = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    const today = now.getDate();
+    const dates = [];
+    for (let d = 1; d <= today; d++) {
+      const dateObj = new Date(year, month, d);
+      dates.push(dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }));
+    }
+    return dates;
   };
 
-  const getStatusColor = (status) => {
+  // Helper for yearly labels
+  const getYearlyLabels = () => {
+    const now = new Date();
+    const labels = [];
+    for (let i = 11; i >= 0; i--) {
+      const date = new Date();
+      date.setMonth(now.getMonth() - i);
+      labels.push(date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }));
+    }
+    return labels;
+  };
+
+  const processSubmissionsData = (submissions, filter) => {
+    const stats = new Map();
+    const now = new Date();
+
+    if (filter === 'hourly') {
+      // 0-23 hours for selectedDate
+      for (let h = 0; h < 24; h++) {
+        stats.set(h.toString().padStart(2, '0'), 0);
+      }
+      const [selMonth, selDay, selYear] = selectedDate.match(/([A-Za-z]+) (\d+), (\d+)/).slice(1);
+      for (const course in submissions) {
+        for (const category in submissions[course]) {
+          for (const question in submissions[course][category]) {
+            for (const timestamp in submissions[course][category][question]) {
+              const submission = submissions[course][category][question][timestamp];
+              if (submission.status === 'correct') {
+                const date = new Date(parseFirebaseTimestamp(timestamp));
+                if (
+                  date.getFullYear() === Number(selYear) &&
+                  date.toLocaleString('en-US', { month: 'short' }) === selMonth &&
+                  date.getDate() === Number(selDay)
+                ) {
+                  const hour = date.getHours().toString().padStart(2, '0');
+                  if (stats.has(hour)) {
+                    stats.set(hour, stats.get(hour) + 1);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    } else if (filter === 'weekly') {
+      // Last 7 days
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(now.getDate() - i);
+        stats.set(date.toLocaleDateString(), 0);
+      }
+      for (const course in submissions) {
+        for (const category in submissions[course]) {
+          for (const question in submissions[course][category]) {
+            for (const timestamp in submissions[course][category][question]) {
+              const submission = submissions[course][category][question][timestamp];
+              if (submission.status === 'correct') {
+                const date = new Date(parseFirebaseTimestamp(timestamp));
+                const key = date.toLocaleDateString();
+                if (stats.has(key)) {
+                  stats.set(key, stats.get(key) + 1);
+                }
+              }
+            }
+          }
+        }
+      }
+    } else if (filter === 'monthly') {
+      // Last 12 months, label as "Aug 2024", "Sep 2024", etc.
+      const labels = getYearlyLabels();
+      labels.forEach(label => stats.set(label, 0));
+      for (const course in submissions) {
+        for (const category in submissions[course]) {
+          for (const question in submissions[course][category]) {
+            for (const timestamp in submissions[course][category][question]) {
+              const submission = submissions[course][category][question][timestamp];
+              if (submission.status === 'correct') {
+                const date = new Date(parseFirebaseTimestamp(timestamp));
+                const key = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                if (stats.has(key)) {
+                  stats.set(key, stats.get(key) + 1);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return {
+      labels: Array.from(stats.keys()),
+      data: Array.from(stats.values())
+    };
+  };
+
+   const getStatusColor = (status) => {
     switch (status) {
       case "Accepted":
         return "text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/30";
@@ -323,6 +463,9 @@ function ProfilePage() {
 
           // Sort submissions by timestamp in descending order
           submissionsList.sort((a, b) => b.timestamp - a.timestamp);
+
+          const stats = processSubmissionsData(submissionsData, timeFilter);
+          setSubmissionStats(stats);
         }
 
         setProfileData((prev) => ({
@@ -358,7 +501,7 @@ function ProfilePage() {
 
       fetchUserData();
     }
-  }, [user]);
+  }, [user, timeFilter, selectedDate]);
 
   if (loading) {
     return (
@@ -391,6 +534,8 @@ function ProfilePage() {
     );
   }
 
+  console.log("Profile Data:", profileData);
+
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
@@ -407,9 +552,7 @@ function ProfilePage() {
                     className="w-full h-full rounded-full border-4 border-white dark:border-gray-800"
                   />
                 </div>
-                <button className="absolute bottom-0 right-0 bg-gradient-to-r from-blue-500 to-purple-600 text-white p-2 rounded-full hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-lg">
-                  <Icons.Edit />
-                </button>
+               
               </div>
 
               {/* User Info */}
@@ -418,7 +561,6 @@ function ProfilePage() {
                   <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                     {profileData.username}
                   </h1>
-                
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -493,20 +635,104 @@ function ProfilePage() {
                 <div className="space-y-8">
                   {/* Activity Graph */}
                   <div>
-                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
-                      Activity
-                    </h3>
-                    <div className="bg-gradient-to-r from-blue-100 to-purple-100 dark:from-gray-700 dark:to-gray-600 rounded-xl p-8 h-48">
-                      <div className="flex items-center justify-center h-full">
-                        <div className="text-center">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                        Activity
+                      </h3>
+                      <div className="flex gap-2">
+                        {timeFilter === "hourly" && (
+                          <select
+                            className="bg-white/70 dark:bg-gray-700/70 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-sm"
+                            value={selectedDate}
+                            onChange={e => setSelectedDate(e.target.value)}
+                          >
+                            {getMonthDates().map(date => (
+                              <option key={date} value={date}>
+                                {date.replace(/, \d{4}$/, '')}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                        <select
+                          className="bg-white/70 dark:bg-gray-700/70 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-sm"
+                          value={timeFilter}
+                          onChange={(e) => setTimeFilter(e.target.value)}
+                        >
+                          <option value="hourly">Hourly</option>
+                          <option value="weekly">Weekly</option>
+                          <option value="monthly">Monthly</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="bg-white/50 dark:bg-gray-800/50 rounded-xl p-6 h-[300px] flex items-center justify-center">
+                      {submissionStats.data.length === 0 ||
+                        submissionStats.data.every((v) => v === 0) ? (
+                        <div className="text-center w-full">
                           <div className="w-16 h-16 mx-auto mb-4 bg-white/50 dark:bg-gray-800/50 rounded-full flex items-center justify-center">
                             <Icons.Trophy />
                           </div>
                           <p className="text-gray-600 dark:text-gray-400 text-lg">
-                            Activity Graph Coming Soon
+                            No submissions
                           </p>
                         </div>
-                      </div>
+                      ) : (
+                        <Line
+                          data={{
+                            labels: submissionStats.labels,
+                            datasets: [
+                              {
+                                data: submissionStats.data,
+                                borderColor: 'rgb(59, 130, 246)',
+                                backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                                tension: 0.4,
+                                pointRadius: 4,
+                                pointHoverRadius: 6,
+                              }
+                            ]
+                          }}
+                          options={{
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                              x: {
+                                title: {
+                                  display: true,
+                                  text:
+                                    timeFilter === "hourly"
+                                      ? "Hours"
+                                      : timeFilter === "weekly"
+                                      ? "Date"
+                                      : timeFilter === "monthly"
+                                      ? "Month & Year"
+                                      : "Month & Year",
+                                  font: { size: 14 }
+                                }
+                              },
+                              y: {
+                                beginAtZero: true,
+                                ticks: { stepSize: 1 },
+                                title: {
+                                  display: true,
+                                  text: "No. of questions",
+                                  font: { size: 14 },
+                                  color: "#374151"
+                                }
+                              }
+                            },
+                            plugins: {
+                              legend: { display: false },
+                              title: { display: false },
+                              tooltip: {
+                                callbacks: {
+                                  label: function(context) {
+                                    return `Correct submissions: ${context.parsed.y}`;
+                                  }
+                                }
+                              }
+                            }
+                          }}
+                        />
+                      )}
                     </div>
                   </div>
                 </div>
@@ -704,7 +930,6 @@ function ProfilePage() {
                 </div>
               )}
 
-            
             </div>
           </div>
         </div>
