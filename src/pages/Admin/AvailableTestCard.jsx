@@ -16,12 +16,18 @@ export default function AvailableTestCard({ test, endTest }) {
       <p className="text-gray-600 dark:text-gray-300">
         Status: <span className="capitalize">{test.Properties?.status || 'draft'}</span>
       </p>
-      <div className="mt-4">
+      <div className="mt-4 flex gap-2">
         <button
           onClick={() => endTest(test.id)}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+          className="w-full bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 text-xs"
         >
           End Test
+        </button>
+        <button
+          onClick={() => navigate(`/exammonitor/${test.id}`)}
+          className="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 text-xs"
+        >
+          View Progress
         </button>
       </div>
     </div>
