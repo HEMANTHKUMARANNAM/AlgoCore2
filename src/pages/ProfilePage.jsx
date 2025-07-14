@@ -3,29 +3,7 @@ import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
 import { ref, get, child } from "firebase/database";
 import { database } from "../firebase";
-import { Line } from "react-chartjs-2";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-} from 'chart.js';
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-);
+import { generateSubmissionPDF } from "../utils/generatePdf";
 
 // SVG Icons
 const Icons = {
@@ -104,87 +82,6 @@ const Icons = {
       />
     </svg>
   ),
-  Settings: () => (
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-      />
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-      />
-    </svg>
-  ),
-  Moon: () => (
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-      />
-    </svg>
-  ),
-  Sun: () => (
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
-      />
-    </svg>
-  ),
-  Bell: () => (
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-      />
-    </svg>
-  ),
-  Shield: () => (
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-      />
-    </svg>
-  ),
   Eye: () => (
     <svg
       className="w-5 h-5"
@@ -207,6 +104,7 @@ const Icons = {
     </svg>
   ),
 };
+
 // Helper functions for timestamp conversion
 const parseFirebaseTimestamp = (timestampKey) => {
   if (!timestampKey) return new Date(NaN);
@@ -240,141 +138,20 @@ const formatFirebaseTimestamp = (timestampKey) => {
   });
 };
 
-// Format join date from timestamp
-const formatJoinDate = (timestamp) => {
-  if (!timestamp) return "Unknown";
-  const date = new Date(timestamp);
-  return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
-};
-
-
 function ProfilePage() {
   const { theme } = useTheme();
   const { user, logout, loading } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
-  const [isDarkMode, setIsDarkMode] = useState(theme === "dark");
   const [profileData, setProfileData] = useState(null);
-  const [timeFilter, setTimeFilter] = useState('hourly');
-  const [selectedDate, setSelectedDate] = useState(() => {
-    const now = new Date();
-    return now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  });
-  // Add useState for submissionStats
-  const [submissionStats, setSubmissionStats] = useState({
-    labels: [],
-    data: []
-  });
 
-  // Helper to get all dates from start of month to today
-  const getMonthDates = () => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth();
-    const today = now.getDate();
-    const dates = [];
-    for (let d = 1; d <= today; d++) {
-      const dateObj = new Date(year, month, d);
-      dates.push(dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }));
-    }
-    return dates;
+  // Format join date from timestamp
+  const formatJoinDate = (timestamp) => {
+    if (!timestamp) return "Unknown";
+    const date = new Date(timestamp);
+    return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
   };
 
-  // Helper for yearly labels
-  const getYearlyLabels = () => {
-    const now = new Date();
-    const labels = [];
-    for (let i = 11; i >= 0; i--) {
-      const date = new Date();
-      date.setMonth(now.getMonth() - i);
-      labels.push(date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }));
-    }
-    return labels;
-  };
-
-  const processSubmissionsData = (submissions, filter) => {
-    const stats = new Map();
-    const now = new Date();
-
-    if (filter === 'hourly') {
-      // 0-23 hours for selectedDate
-      for (let h = 0; h < 24; h++) {
-        stats.set(h.toString().padStart(2, '0'), 0);
-      }
-      const [selMonth, selDay, selYear] = selectedDate.match(/([A-Za-z]+) (\d+), (\d+)/).slice(1);
-      for (const course in submissions) {
-        for (const category in submissions[course]) {
-          for (const question in submissions[course][category]) {
-            for (const timestamp in submissions[course][category][question]) {
-              const submission = submissions[course][category][question][timestamp];
-              if (submission.status === 'correct') {
-                const date = new Date(parseFirebaseTimestamp(timestamp));
-                if (
-                  date.getFullYear() === Number(selYear) &&
-                  date.toLocaleString('en-US', { month: 'short' }) === selMonth &&
-                  date.getDate() === Number(selDay)
-                ) {
-                  const hour = date.getHours().toString().padStart(2, '0');
-                  if (stats.has(hour)) {
-                    stats.set(hour, stats.get(hour) + 1);
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    } else if (filter === 'weekly') {
-      // Last 7 days
-      for (let i = 6; i >= 0; i--) {
-        const date = new Date();
-        date.setDate(now.getDate() - i);
-        stats.set(date.toLocaleDateString(), 0);
-      }
-      for (const course in submissions) {
-        for (const category in submissions[course]) {
-          for (const question in submissions[course][category]) {
-            for (const timestamp in submissions[course][category][question]) {
-              const submission = submissions[course][category][question][timestamp];
-              if (submission.status === 'correct') {
-                const date = new Date(parseFirebaseTimestamp(timestamp));
-                const key = date.toLocaleDateString();
-                if (stats.has(key)) {
-                  stats.set(key, stats.get(key) + 1);
-                }
-              }
-            }
-          }
-        }
-      }
-    } else if (filter === 'monthly') {
-      // Last 12 months, label as "Aug 2024", "Sep 2024", etc.
-      const labels = getYearlyLabels();
-      labels.forEach(label => stats.set(label, 0));
-      for (const course in submissions) {
-        for (const category in submissions[course]) {
-          for (const question in submissions[course][category]) {
-            for (const timestamp in submissions[course][category][question]) {
-              const submission = submissions[course][category][question][timestamp];
-              if (submission.status === 'correct') {
-                const date = new Date(parseFirebaseTimestamp(timestamp));
-                const key = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-                if (stats.has(key)) {
-                  stats.set(key, stats.get(key) + 1);
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-    return {
-      labels: Array.from(stats.keys()),
-      data: Array.from(stats.values())
-    };
-  };
-
-   const getStatusColor = (status) => {
+  const getStatusColor = (status) => {
     switch (status) {
       case "Accepted":
         return "text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/30";
@@ -438,7 +215,7 @@ function ProfilePage() {
                 ]) {
                   const submission =
                     submissionsData[courseKey][subKey][questionId][
-                      timestampKey
+                    timestampKey
                     ];
                   totalSubmissions++;
 
@@ -463,9 +240,6 @@ function ProfilePage() {
 
           // Sort submissions by timestamp in descending order
           submissionsList.sort((a, b) => b.timestamp - a.timestamp);
-
-          const stats = processSubmissionsData(submissionsData, timeFilter);
-          setSubmissionStats(stats);
         }
 
         setProfileData((prev) => ({
@@ -501,7 +275,7 @@ function ProfilePage() {
 
       fetchUserData();
     }
-  }, [user, timeFilter, selectedDate]);
+  }, [user]);
 
   if (loading) {
     return (
@@ -534,8 +308,6 @@ function ProfilePage() {
     );
   }
 
-  console.log("Profile Data:", profileData);
-
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
@@ -552,7 +324,9 @@ function ProfilePage() {
                     className="w-full h-full rounded-full border-4 border-white dark:border-gray-800"
                   />
                 </div>
-               
+                <button className="absolute bottom-0 right-0 bg-gradient-to-r from-blue-500 to-purple-600 text-white p-2 rounded-full hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-lg">
+                  <Icons.Edit />
+                </button>
               </div>
 
               {/* User Info */}
@@ -561,6 +335,9 @@ function ProfilePage() {
                   <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                     {profileData.username}
                   </h1>
+                  <button className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                    <Icons.Edit />
+                  </button>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -608,26 +385,23 @@ function ProfilePage() {
           <div className="bg-white/80 backdrop-blur-sm dark:bg-gray-800/80 rounded-2xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 mb-8">
             <div className="flex border-b border-gray-200 dark:border-gray-700">
               <button
-                className={`px-6 py-4 text-sm font-medium transition-all duration-200 ${
-                  activeTab === "overview"
-                    ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50/50 dark:bg-blue-900/20"
-                    : "text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
-                }`}
+                className={`px-6 py-4 text-sm font-medium transition-all duration-200 ${activeTab === "overview"
+                  ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50/50 dark:bg-blue-900/20"
+                  : "text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
+                  }`}
                 onClick={() => setActiveTab("overview")}
               >
                 Overview
               </button>
               <button
-                className={`px-6 py-4 text-sm font-medium transition-all duration-200 ${
-                  activeTab === "submissions"
-                    ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50/50 dark:bg-blue-900/20"
-                    : "text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
-                }`}
+                className={`px-6 py-4 text-sm font-medium transition-all duration-200 ${activeTab === "submissions"
+                  ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50/50 dark:bg-blue-900/20"
+                  : "text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
+                  }`}
                 onClick={() => setActiveTab("submissions")}
               >
                 Submissions
               </button>
-            
             </div>
 
             <div className="p-8">
@@ -635,104 +409,20 @@ function ProfilePage() {
                 <div className="space-y-8">
                   {/* Activity Graph */}
                   <div>
-                    <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                        Activity
-                      </h3>
-                      <div className="flex gap-2">
-                        {timeFilter === "hourly" && (
-                          <select
-                            className="bg-white/70 dark:bg-gray-700/70 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-sm"
-                            value={selectedDate}
-                            onChange={e => setSelectedDate(e.target.value)}
-                          >
-                            {getMonthDates().map(date => (
-                              <option key={date} value={date}>
-                                {date.replace(/, \d{4}$/, '')}
-                              </option>
-                            ))}
-                          </select>
-                        )}
-                        <select
-                          className="bg-white/70 dark:bg-gray-700/70 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-sm"
-                          value={timeFilter}
-                          onChange={(e) => setTimeFilter(e.target.value)}
-                        >
-                          <option value="hourly">Hourly</option>
-                          <option value="weekly">Weekly</option>
-                          <option value="monthly">Monthly</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div className="bg-white/50 dark:bg-gray-800/50 rounded-xl p-6 h-[300px] flex items-center justify-center">
-                      {submissionStats.data.length === 0 ||
-                        submissionStats.data.every((v) => v === 0) ? (
-                        <div className="text-center w-full">
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
+                      Activity
+                    </h3>
+                    <div className="bg-gradient-to-r from-blue-100 to-purple-100 dark:from-gray-700 dark:to-gray-600 rounded-xl p-8 h-48">
+                      <div className="flex items-center justify-center h-full">
+                        <div className="text-center">
                           <div className="w-16 h-16 mx-auto mb-4 bg-white/50 dark:bg-gray-800/50 rounded-full flex items-center justify-center">
                             <Icons.Trophy />
                           </div>
                           <p className="text-gray-600 dark:text-gray-400 text-lg">
-                            No submissions
+                            Activity Graph Coming Soon
                           </p>
                         </div>
-                      ) : (
-                        <Line
-                          data={{
-                            labels: submissionStats.labels,
-                            datasets: [
-                              {
-                                data: submissionStats.data,
-                                borderColor: 'rgb(59, 130, 246)',
-                                backgroundColor: 'rgba(59, 130, 246, 0.5)',
-                                tension: 0.4,
-                                pointRadius: 4,
-                                pointHoverRadius: 6,
-                              }
-                            ]
-                          }}
-                          options={{
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            scales: {
-                              x: {
-                                title: {
-                                  display: true,
-                                  text:
-                                    timeFilter === "hourly"
-                                      ? "Hours"
-                                      : timeFilter === "weekly"
-                                      ? "Date"
-                                      : timeFilter === "monthly"
-                                      ? "Month & Year"
-                                      : "Month & Year",
-                                  font: { size: 14 }
-                                }
-                              },
-                              y: {
-                                beginAtZero: true,
-                                ticks: { stepSize: 1 },
-                                title: {
-                                  display: true,
-                                  text: "No. of questions",
-                                  font: { size: 14 },
-                                  color: "#374151"
-                                }
-                              }
-                            },
-                            plugins: {
-                              legend: { display: false },
-                              title: { display: false },
-                              tooltip: {
-                                callbacks: {
-                                  label: function(context) {
-                                    return `Correct submissions: ${context.parsed.y}`;
-                                  }
-                                }
-                              }
-                            }
-                          }}
-                        />
-                      )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -803,13 +493,11 @@ function ProfilePage() {
                           <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                             Status
                           </th>
-                          {/*
-                          <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Runtime
-                          </th>
-                          */}
                           <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                             Date
+                          </th>
+                          <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            PDF
                           </th>
                         </tr>
                       </thead>
@@ -844,18 +532,20 @@ function ProfilePage() {
                                   {submission.status}
                                 </span>
                               </td>
-                              {/*
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm text-gray-600 dark:text-gray-400">
-                                  {submission.runtime}
-                                </div>
-                              </td>
-                              */}
-                              
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="text-sm text-gray-600 dark:text-gray-400">
                                   {submission.date || "N/A"}
                                 </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                {submission.status === "Accepted" && (
+                                  <button
+                                    onClick={() => generateSubmissionPDF(submission)}
+                                    className="text-blue-600 hover:underline text-sm"
+                                  >
+                                    View PDF
+                                  </button>
+                                )}
                               </td>
                             </tr>
                           )
@@ -889,21 +579,21 @@ function ProfilePage() {
                       Previous
                     </button>
                     <span className="text-sm text-gray-600 dark:text-gray-400">
-                      (
-                      {profileData.allSubmissions?.length || 0})
+                      Showing {profileData.recentSubmissions.length} of{" "}
+                      {profileData.allSubmissions?.length || 0} submissions
                     </span>
                     <button
                       className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm disabled:opacity-50"
                       disabled={
                         profileData.recentSubmissions.length === 0 ||
                         profileData.allSubmissions.length <=
-                          profileData.recentSubmissions.length ||
+                        profileData.recentSubmissions.length ||
                         profileData.recentSubmissions[
                           profileData.recentSubmissions.length - 1
                         ].timestamp ===
-                          profileData.allSubmissions[
-                            profileData.allSubmissions.length - 1
-                          ].timestamp
+                        profileData.allSubmissions[
+                          profileData.allSubmissions.length - 1
+                        ].timestamp
                       }
                       onClick={() => {
                         const currentIndex =
@@ -929,7 +619,6 @@ function ProfilePage() {
                   </div>
                 </div>
               )}
-
             </div>
           </div>
         </div>

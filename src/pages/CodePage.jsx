@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
@@ -6,9 +5,7 @@ import Editor from '@monaco-editor/react';
 import { useTheme } from '../context/ThemeContext';
 import { useParams, useNavigate } from "react-router-dom";
 
-
 import { Icons, languageTemplates } from './constants';
-
 
 import { database } from "../firebase";
 import { ref, get, set, child } from "firebase/database";
@@ -16,11 +13,6 @@ import { ref, get, set, child } from "firebase/database";
 import AnimatedTestResults from './AnimatedTestResults';
 import { executeCode } from './api';
 import { useAuth } from '../context/AuthContext';
-
-
-
-
-
 
 function CodePage() {
   const [code, setCode] = useState("");
@@ -33,50 +25,51 @@ function CodePage() {
   const [selectedLanguage, setSelectedLanguage] = useState('python');
   const { theme } = useTheme();
   const [questionData, setQuestionData] = useState(null);
-  const [testCasesrun, setTestCases] = useState([]); // Added missing state
-  const [allowlanguages, setallowlanguages] = useState([]); // Added missing state
+  const [testCasesrun, setTestCases] = useState([]);
+  const [allowlanguages, setallowlanguages] = useState([]);
+  const [submissions, setSubmissions] = useState([]);
+  const [submissionTrigger, setSubmissionTrigger] = useState(0); // New state to trigger submission refresh
 
   const { course, subcourse, questionId } = useParams();
+  const user = useAuth();
 
-    const user = useAuth();
+  // Refs for cleanup and debouncing
+  const saveTimeoutRef = useRef(null);
+  const editorRef = useRef(null);
+  const resizeObserverRef = useRef(null);
+  const layoutTimeoutRef = useRef(null);
 
-    const sanitizeKey = (key) => {
-      if (!key) return '';
-      // Replace all invalid Firebase characters with underscores
-      return key.replace(/[.#$/\[\]:]/g, '_'); // added colon to the regex
-    };
+  const sanitizeKey = (key) => {
+    if (!key) return '';
+    return key.replace(/[.#$/\[\]:]/g, '_');
+  };
+
+  const logSubmission = async (status, submittedCode) => {
+    console.log("logging submission");
+    console.log(user?.user?.email);
     
+    if (!user?.user?.uid) return;
 
-    const logSubmission = async (status, submittedCode) => {
+    const timestamp = new Date().toISOString();
+    const safeCourse = sanitizeKey(course);
+    const safeSubcourse = sanitizeKey(subcourse);
+    const safeQuestionId = sanitizeKey(questionId);
+    const safeTimestamp = sanitizeKey(timestamp);
 
-      console.log(  "logging submission" );
+    const path = `Submissions/${user.user.uid}/${safeCourse}/${safeSubcourse}/${safeQuestionId}/${safeTimestamp}`;
 
-      console.log(user?.user?.email);
-      if (!user?.user?.uid) return;
-    
-      const timestamp = new Date().toISOString();
-      
-      const safeCourse = sanitizeKey(course);
-      const safeSubcourse = sanitizeKey(subcourse);
-      const safeQuestionId = sanitizeKey(questionId);
-      const safeTimestamp = sanitizeKey(timestamp); // Sanitize the timestamp too
-    
-      const path = `Submissions/${user.user.uid}/${safeCourse}/${safeSubcourse}/${safeQuestionId}/${safeTimestamp}`;
-    
-      try {
-        await set(ref(database, path), {
-          language: selectedLanguage,
-          status,
-          code: submittedCode,
-        });
-        console.log("Submission logged successfully.");
-      } catch (error) {
-        console.error("Error logging submission:", error);
-      }
-    };
-
-
-
+    try {
+      await set(ref(database, path), {
+        language: selectedLanguage,
+        status,
+        code: submittedCode,
+      });
+      console.log("Submission logged successfully.");
+      setSubmissionTrigger(prev => prev + 1); // Trigger submission refresh
+    } catch (error) {
+      console.error("Error logging submission:", error);
+    }
+  };
 
   const handleSubmit2 = async () => {
     const testCases = questionData.testcases;
@@ -115,24 +108,15 @@ function CodePage() {
         status: 'done',
       };
 
-      setTestResults([...updatedResults]); // triggers re-render and animation
-      await new Promise(res => setTimeout(res, 300)); // optional delay
+      setTestResults([...updatedResults]);
+      await new Promise(res => setTimeout(res, 300));
     }
 
-
-      const allPassed = updatedResults.every(tc => tc.passed);
-
+    const allPassed = updatedResults.every(tc => tc.passed);
     await markProblemAsCompleted(allPassed);
-
-    await logSubmission(allPassed ? 'correct' : 'wrong', "");
-
-
-
-
+    await logSubmission(allPassed ? 'correct' : 'wrong', code);
   };
 
-
-  
   const markProblemAsCompleted = async (isCorrect) => {
     if (!user?.user?.uid) return;
 
@@ -142,31 +126,21 @@ function CodePage() {
         `userprogress/${user.user.uid}/${course}/${subcourse}/${questionId}`
       );
 
-      const snapshot = await get(progressRef);
-
-      if (snapshot.exists() && snapshot.val() === true) {
-        return; // 🔥 already completed, don't update
-      }
-
       await set(progressRef, isCorrect);
-      console.log(` userprogress saved: ${questionId} = ${isCorrect}`);
+      console.log(`userprogress saved: ${questionId} = ${isCorrect}`);
     } catch (error) {
-      console.error(" Error saving user progress:", error);
+      console.error("Error saving user progress:", error);
     }
   };
 
-
-
-
   const runCode = async () => {
-
     const testCases = testCasesrun;
-
     console.log(testCases);
+    
     try {
-
       const results = [];
       const display = [];
+      
       for (const { input: testInput, expectedOutput } of testCases) {
         const { run: result } = await executeCode(selectedLanguage, code, testInput);
         const resultlist = result.output ? result.output.split("\n") : ["No output received."];
@@ -188,12 +162,10 @@ function CodePage() {
           );
 
         display.push({ passed: areEqual, input: testInput, output: result.output });
-
         results.push(areEqual);
       }
 
       const allPassed = results.every((passed) => passed);
-
 
       if (allPassed) {
         console.log("Correct Answer! All test cases passed.")
@@ -205,22 +177,15 @@ function CodePage() {
       setOutput(null);
       setActiveTab('output');
 
-
     } catch (error) {
       console.error("Error during test cases:", error);
-
-    } finally {
     }
   };
 
-
-  // Fixed loadCode function
   const loadCode = useCallback(async () => {
-          if (!user?.user?.uid) return;
-
     try {
       const dbRef = ref(database);
-      const codeKey = `savedCode/${user?.user?.uid}/${course}/${questionId}/${selectedLanguage}`;
+      const codeKey = `savedCode/${course}/${questionId}/${selectedLanguage}`;
       const snapshot = await get(child(dbRef, codeKey));
 
       console.log(snapshot.val());
@@ -230,23 +195,18 @@ function CodePage() {
         setCode(savedCode);
         console.log("Code loaded successfully!");
       } else {
-        // Set default template if no saved code exists
         setCode(languageTemplates[selectedLanguage] || "");
         console.log("No saved code found, using default template");
       }
     } catch (error) {
       console.error("Error loading code:", error);
-      // Fallback to default template on error
       setCode(languageTemplates[selectedLanguage] || "");
     }
   }, [course, questionId, selectedLanguage]);
 
-  // Fixed saveCode function
   const saveCode = useCallback(async (codeToSave) => {
-      if (!user?.user?.uid) return;
-
     try {
-      const codeKey = `savedCode/${user?.user?.uid}/${course}/${questionId}/${selectedLanguage}`;
+      const codeKey = `savedCode/${course}/${questionId}/${selectedLanguage}`;
       const dbRef = ref(database, codeKey);
       await set(dbRef, codeToSave);
       console.log("Code auto-saved successfully!");
@@ -255,50 +215,58 @@ function CodePage() {
     }
   }, [course, questionId, selectedLanguage]);
 
+  // Fetch submissions
+  useEffect(() => {
+    const fetchSubmissions = async () => {
+      if (!user?.user?.uid || !course || !subcourse || !questionId) return;
 
-  // Fixed handleCodeChange function
+      const safeCourse = sanitizeKey(course);
+      const safeSubcourse = sanitizeKey(subcourse);
+      const safeQuestionId = sanitizeKey(questionId);
+
+      const path = `Submissions/${user.user.uid}/${safeCourse}/${safeSubcourse}/${safeQuestionId}`;
+      const snapshot = await get(ref(database, path));
+
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        const parsed = Object.entries(data).map(([timestamp, entry]) => ({
+          timestamp,
+          ...entry,
+        }));
+        setSubmissions(parsed.reverse());
+      } else {
+        setSubmissions([]);
+      }
+    };
+
+    fetchSubmissions();
+  }, [user, course, subcourse, questionId, submissionTrigger]); // Added submissionTrigger as dependency
+
   const handleCodeChange = useCallback((newValue) => {
-    setCode(newValue); // Update state immediately
+    setCode(newValue);
 
-    // Clear existing timeout
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
     }
 
-    // Set new timeout for saving
     saveTimeoutRef.current = setTimeout(() => {
       saveCode(newValue);
     }, 500);
   }, [saveCode]);
 
-
-  // Fixed handleLanguageChange function
   const handleLanguageChange = useCallback((e) => {
     const newLanguage = e.target.value;
     setSelectedLanguage(newLanguage);
-    // Load saved code for the new language, or use template if none exists
-    // Note: loadCode will be called in useEffect when selectedLanguage changes
   }, []);
 
   // Load code when component mounts or language changes
   useEffect(() => {
-    if (questionData) { // Only load after question data is available
+    if (questionData) {
       loadCode();
     }
   }, [loadCode, questionData, selectedLanguage]);
 
-
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-    };
-  }, []);
-
   async function getAllowedLanguageTemplates() {
-
     const dbRef = ref(database);
 
     try {
@@ -310,9 +278,7 @@ function CodePage() {
       }
 
       const data = snapshot.val();
-
       setallowlanguages(data);
-
       console.log(allowlanguages);
 
     } catch (error) {
@@ -321,19 +287,13 @@ function CodePage() {
     }
   }
 
-
   // Fetch question data from Firebase
   useEffect(() => {
-
     const fetchData = async () => {
       try {
-        // Single call for both question data and next question URL
         console.log(`AlgoCore/${String(course).replace(" ", "")}/${subcourse}/${questionId}`)
-        const questionRef = ref(
-          database,
-          `questions/${questionId}`);
+        const questionRef = ref(database, `questions/${questionId}`);
 
-        // Get both question data and all questions in parallel
         const [questionSnapshot] = await Promise.all([
           get(questionRef),
         ]);
@@ -341,10 +301,10 @@ function CodePage() {
         if (questionSnapshot.exists()) {
           const question = questionSnapshot.val();
 
-
-          setTestCases([...testCasesrun, { input: question?.testcases[0].input, expectedOutput: question?.testcases[0].expectedOutput }]);
-          setTestCases([...testCasesrun, { input: question?.testcases[1].input, expectedOutput: question?.testcases[1].expectedOutput }]);
-
+          setTestCases([
+            { input: question?.testcases[0].input, expectedOutput: question?.testcases[0].expectedOutput },
+            { input: question?.testcases[1].input, expectedOutput: question?.testcases[1].expectedOutput }
+          ]);
 
           console.log(question);
           setQuestionData(question);
@@ -356,27 +316,78 @@ function CodePage() {
 
     fetchData();
     loadCode();
-     getAllowedLanguageTemplates();
-    
+    getAllowedLanguageTemplates();
+  }, []);
 
-  }, []); // Dependencies adjusted
-
-
-
-  const saveTimeoutRef = useRef(null); // Reference to track the debounce timer
-
-
-  // Monaco Editor layout fix
-  const editorRef = useRef(null);
-  function handleEditorDidMount(editor) {
+  // Fixed Monaco Editor layout handling
+  const handleEditorDidMount = useCallback((editor) => {
     editorRef.current = editor;
-  }
-  useEffect(() => {
-    if (editorRef.current) {
-      editorRef.current.layout();
+    
+    // Clean up previous observer
+    if (resizeObserverRef.current) {
+      resizeObserverRef.current.disconnect();
     }
+
+    // Create new ResizeObserver with proper error handling
+    resizeObserverRef.current = new ResizeObserver((entries) => {
+      // Clear any existing timeout
+      if (layoutTimeoutRef.current) {
+        clearTimeout(layoutTimeoutRef.current);
+      }
+
+      // Use setTimeout to prevent ResizeObserver loop
+      layoutTimeoutRef.current = setTimeout(() => {
+        try {
+          if (editorRef.current && !editorRef.current.isDisposed()) {
+            editorRef.current.layout();
+          }
+        } catch (error) {
+          // Silently handle disposed editor errors
+          console.warn('Editor layout error:', error);
+        }
+      }, 0);
+    });
+
+    // Observe the editor container
+    const container = editor.getContainerDomNode();
+    if (container) {
+      resizeObserverRef.current.observe(container);
+    }
+  }, []);
+
+  // Handle panel width changes
+  useEffect(() => {
+    if (layoutTimeoutRef.current) {
+      clearTimeout(layoutTimeoutRef.current);
+    }
+
+    layoutTimeoutRef.current = setTimeout(() => {
+      if (editorRef.current && !editorRef.current.isDisposed()) {
+        try {
+          editorRef.current.layout();
+        } catch (error) {
+          console.warn('Editor layout error:', error);
+        }
+      }
+    }, 100);
   }, [leftPanelWidth]);
 
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+      if (layoutTimeoutRef.current) {
+        clearTimeout(layoutTimeoutRef.current);
+      }
+      if (resizeObserverRef.current) {
+        resizeObserverRef.current.disconnect();
+      }
+    };
+  }, []);
+
+  // Panel resize handlers
   const handleMouseDown = useCallback((e) => {
     setIsDragging(true);
     e.preventDefault();
@@ -388,7 +399,6 @@ function CodePage() {
     const rect = container.getBoundingClientRect();
     const x = e.touches ? e.touches[0].clientX : e.clientX;
     let newLeftWidth = ((x - rect.left) / rect.width) * 100;
-    // Clamp between 18% and 70%
     newLeftWidth = Math.max(18, Math.min(70, newLeftWidth));
     setLeftPanelWidth(newLeftWidth);
   }, [isDragging]);
@@ -417,9 +427,6 @@ function CodePage() {
       document.body.style.userSelect = '';
     };
   }, [isDragging, handleMouseMove, handleMouseUp]);
-
-
-
 
   return (
     <div className="min-h-screen h-screen w-full flex bg-white dark:bg-dark-primary select-none">
@@ -457,6 +464,15 @@ function CodePage() {
             <div className="flex items-center gap-2">
               <Icons.Terminal />
               Output
+            </div>
+          </button>
+          <button
+            className={`px-4 py-3 text-sm font-medium ${activeTab === 'submissions' ? 'text-[#4285F4] border-b-2 border-[#4285F4]' : 'text-gray-600 dark:text-gray-400 hover:text-[#4285F4] dark:hover:text-white'}`}
+            onClick={() => setActiveTab('submissions')}
+          >
+            <div className="flex items-center gap-2">
+              <Icons.Clock />
+              Submissions
             </div>
           </button>
         </div>
@@ -509,20 +525,10 @@ function CodePage() {
             </div>
           )}
 
-          {/* {activeTab === 'testcases' && (
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">Add Manual Test Case</h3>
-
-              </div>
-            </div>
-          )} */}
-
           {activeTab === 'testcases' && (
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">Manual Test Cases</h3>
-                {/* Tab bar */}
                 <div className="flex items-center gap-2 mb-4">
                   {testCasesrun.map((_, idx) => (
                     <button
@@ -537,18 +543,17 @@ function CodePage() {
                   <button
                     className="ml-2 px-3 py-2 rounded-full bg-[#4285F4] text-white hover:bg-[#357ae8] text-lg font-bold"
                     onClick={() => {
-                      setTestCases([...testCasesrun, { inpyt: '', expectedOutput: '', expectedOutput: '' }]);
+                      setTestCases([...testCasesrun, { input: '', expectedOutput: '' }]);
                       setTestCaseTab(testCasesrun.length);
                     }}
                   >
                     +
                   </button>
                 </div>
-                {/* Editable fields for active tab */}
                 <div className="bg-gray-50 dark:bg-dark-secondary rounded-lg p-4 mb-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-gray-700 dark:text-gray-300 mb-1 font-medium">input</label>
+                      <label className="block text-gray-700 dark:text-gray-300 mb-1 font-medium">Input</label>
                       <input
                         className="w-full p-2 border border-gray-300 dark:border-dark-tertiary rounded-md bg-white dark:bg-dark-secondary text-gray-900 dark:text-white font-mono text-base"
                         type="text"
@@ -562,7 +567,7 @@ function CodePage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-gray-700 dark:text-gray-300 mb-1 font-medium">expectedOutput</label>
+                      <label className="block text-gray-700 dark:text-gray-300 mb-1 font-medium">Expected Output</label>
                       <input
                         className="w-full p-2 border border-gray-300 dark:border-dark-tertiary rounded-md bg-white dark:bg-dark-secondary text-gray-900 dark:text-white font-mono text-base"
                         type="text"
@@ -575,7 +580,6 @@ function CodePage() {
                         placeholder="e.g., 7"
                       />
                     </div>
-
                   </div>
                   <div className="flex justify-end mt-4">
                     <button
@@ -592,7 +596,6 @@ function CodePage() {
                     </button>
                   </div>
                 </div>
-                {/* Test Result Section - Removed from Test Cases tab */}
               </div>
             </div>
           )}
@@ -605,6 +608,52 @@ function CodePage() {
                 <>
                   <AnimatedTestResults testResults={testResults} />
                 </>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'submissions' && (
+            <div className="space-y-4">
+              {submissions.length === 0 ? (
+                <p className="text-gray-600 dark:text-gray-300">No submissions yet for this question.</p>
+              ) : (
+                <table className="min-w-full divide-y divide-gray-200 dark:divide-dark-tertiary">
+                  <thead>
+                    <tr>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Language</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 dark:divide-dark-tertiary">
+                    {submissions.map((s, idx) => (
+                      <tr key={idx}>
+                        <td className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
+                          {(() => {
+                            const fixed = s.timestamp.replace(/T(\d{2})_(\d{2})_(\d{2})_(\d{3})Z/, 'T$1:$2:$3.$4Z');
+                            const date = new Date(fixed);
+                            return isNaN(date.getTime())
+                              ? 'N/A'
+                              : date.toLocaleString('en-US', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                second: '2-digit',
+                              });
+                          })()}
+                        </td>
+                        <td className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
+                          {s.language}
+                        </td>
+                        <td className={`px-4 py-2 text-sm font-medium ${s.status === 'correct' ? 'text-green-600' : 'text-red-500'}`}>
+                          {s.status}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               )}
             </div>
           )}
@@ -632,21 +681,14 @@ function CodePage() {
               value={selectedLanguage}
               onChange={handleLanguageChange}
             >
-              {/* <option value="typescript">TypeScript</option>
-              <option value="javascript">JavaScript</option>
-              <option value="python">Python</option>
-              <option value="java">Java</option>
-              <option value="cpp">C++</option> */}
-              {  allowlanguages.map((lang) => (
+              {allowlanguages.map((lang) => (
                 <option key={lang} value={lang}>
-                  { lang}
+                  {lang}
                 </option>
               ))}
             </select>
           </div>
-          {/* Right: Run/Submit/Stats */}
           <div className="flex items-center gap-4">
-         
             <button
               onClick={runCode}
               className="bg-[#4285F4] hover:bg-[#4285F4]/90 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors duration-150"

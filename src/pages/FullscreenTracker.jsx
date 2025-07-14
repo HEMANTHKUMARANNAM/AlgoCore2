@@ -1,101 +1,8 @@
-// import React, { useEffect, useRef, useState } from "react";
-// import screenfull from "screenfull";
-
-// const FullscreenTracker = () => {
-//   const containerRef = useRef(null);
-//   const [isFullscreen, setIsFullscreen] = useState(false);
-//   const [exitCount, setExitCount] = useState(0);
-//   const [switchCount, setSwitchCount] = useState(0);
-//   const [hoverLeaveCount, setHoverLeaveCount] = useState(0);
-//   const [keypressCount, setKeypressCount] = useState(0);
-
-//   // Toggle fullscreen
-//   const toggleFullscreen = () => {
-//     if (screenfull.isEnabled) {
-//       screenfull.toggle(containerRef.current);
-//     }
-//   };
-
-//   useEffect(() => {
-//     if (!screenfull.isEnabled) return;
-
-//     const onChange = () => {
-//       const fs = screenfull.isFullscreen;
-//       setIsFullscreen(fs);
-//       if (!fs) setExitCount(prev => prev + 1);
-//     };
-
-//     screenfull.on("change", onChange);
-
-//     return () => {
-//       screenfull.off("change", onChange);
-//     };
-//   }, []);
-
-//   // Detect tab switch / blur
-//   useEffect(() => {
-//     const handleBlur = () => setSwitchCount(prev => prev + 1);
-//     window.addEventListener("blur", handleBlur);
-//     return () => window.removeEventListener("blur", handleBlur);
-//   }, []);
-
-//   // Detect mouse leave (hover outside window)
-//   useEffect(() => {
-//     const handleMouseLeave = (e) => {
-//       if (e.clientY <= 0 || e.clientX <= 0 || e.clientX >= window.innerWidth || e.clientY >= window.innerHeight) {
-//         setHoverLeaveCount(prev => prev + 1);
-//       }
-//     };
-//     document.addEventListener("mouseleave", handleMouseLeave);
-//     return () => document.removeEventListener("mouseleave", handleMouseLeave);
-//   }, []);
-
-//   // Detect keypress when not focused
-//   useEffect(() => {
-//     const handleKeyDown = () => {
-//       if (document.hidden || document.activeElement.tagName === "BODY") {
-//         setKeypressCount(prev => prev + 1);
-//       }
-//     };
-//     document.addEventListener("keydown", handleKeyDown);
-//     return () => document.removeEventListener("keydown", handleKeyDown);
-//   }, []);
-
-//   return (
-//     <div>
-//       <button onClick={toggleFullscreen}>
-//         {isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
-//       </button>
-
-//       <div
-//         ref={containerRef}
-//         style={{
-//           width: "100%",
-//           height: isFullscreen ? "100vh" : "400px",
-//           background: "#111",
-//           color: "#0f0",
-//           padding: "20px",
-//           marginTop: "20px",
-//           overflow: "auto",
-//         }}
-//       >
-//         <h2>Fullscreen Mode Active</h2>
-//         <p>Exit Fullscreen Count: {exitCount}</p>
-//         <p>Tab Switch / Blur Count: {switchCount}</p>
-//         <p>Mouse Hover Leave Count: {hoverLeaveCount}</p>
-//         <p>Key Presses While Not Focused: {keypressCount}</p>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default FullscreenTracker;
-
 
 import React, { useEffect, useRef, useState } from "react";
 import screenfull from "screenfull";
 
-const FullscreenTracker = () => {
+const FullscreenTracker = ( { violation , setviolation, testid} ) => {
   const containerRef = useRef(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [exitCount, setExitCount] = useState(0);
@@ -121,7 +28,12 @@ const FullscreenTracker = () => {
     const onChange = () => {
       const fs = screenfull.isFullscreen;
       setIsFullscreen(fs);
-      if (!fs) setExitCount((prev) => prev + 1);
+      if (!fs) 
+      {
+        setviolation(violation + 1);
+        setExitCount((prev) => prev + 1);
+      }
+        
     };
 
     screenfull.on("change", onChange);
@@ -132,6 +44,7 @@ const FullscreenTracker = () => {
   useEffect(() => {
     const handleBlur = () => {
       blurStartRef.current = Date.now();
+      setviolation(violation + 1);
       setSwitchCount((prev) => prev + 1);
     };
 
@@ -203,32 +116,33 @@ const FullscreenTracker = () => {
   };
 
   return (
-    <div>
-      <button onClick={toggleFullscreen}>
-        {isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
-      </button>
+    <></>
+    // <div>
+    //   <button onClick={toggleFullscreen}>
+    //     {isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+    //   </button>
 
-      <div
-        ref={containerRef}
-        style={{
-          width: "100%",
-          height: isFullscreen ? "100vh" : "400px",
-          background: "#111",
-          color: "#0f0",
-          padding: "20px",
-          marginTop: "20px",
-          overflow: "auto",
-        }}
-      >
-        <h2>Fullscreen Mode Active</h2>
-        <p>Exit Fullscreen Count: {exitCount}</p>
-        <p>Tab Switch / Blur Count: {switchCount}</p>
-        <p>Total Time Outside Tab: {formatTime(totalBlurTime)}</p>
-        <p>Mouse Hover Leave Count: {hoverLeaveCount}</p>
-        <p>Total Time Mouse Outside: {formatTime(totalHoverLeaveTime)}</p>
-        <p>Key Presses While Not Focused: {keypressCount}</p>
-      </div>
-    </div>
+    //   <div
+    //     ref={containerRef}
+    //     style={{
+    //       width: "100%",
+    //       height: isFullscreen ? "100vh" : "400px",
+    //       background: "#111",
+    //       color: "#0f0",
+    //       padding: "20px",
+    //       marginTop: "20px",
+    //       overflow: "auto",
+    //     }}
+    //   >
+    //     <h2>Fullscreen Mode Active</h2>
+    //     <p>Exit Fullscreen Count: {exitCount}</p>
+    //     <p>Tab Switch / Blur Count: {switchCount}</p>
+    //     <p>Total Time Outside Tab: {formatTime(totalBlurTime)}</p>
+    //     <p>Mouse Hover Leave Count: {hoverLeaveCount}</p>
+    //     <p>Total Time Mouse Outside: {formatTime(totalHoverLeaveTime)}</p>
+    //     <p>Key Presses While Not Focused: {keypressCount}</p>
+    //   </div>
+    // </div>
   );
 };
 

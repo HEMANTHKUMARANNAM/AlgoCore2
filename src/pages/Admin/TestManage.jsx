@@ -292,7 +292,7 @@ const TestManage = () => {
               </p>
             </div>
             <div className="border-t border-gray-200 dark:border-gray-700 px-4 py-5 sm:p-6">
-              {/* <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 <div>
                   <label htmlFor="test-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     Test Name
@@ -334,7 +334,7 @@ const TestManage = () => {
                   </div>
                 </div>
 
-              </div> */}
+              </div>
 
 
             </div>

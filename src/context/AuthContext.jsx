@@ -8,6 +8,11 @@ import {
 
 import { auth } from '../firebase'; // This now points to the second firebase config
 
+
+
+import { ref, set } from 'firebase/database';
+import { database } from '../firebase'; // Firebase configuration
+
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
@@ -42,6 +47,11 @@ export const AuthProvider = ({ children }) => {
     try {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
+      await set(ref(database, `users/${result.user.uid}`), {
+        email: result.user.email,
+        name: result.user.displayName,
+        profilePhoto: result.user.photoURL
+      });
       return result.user;
     } catch (error) {
       console.error('Google sign-in error:', error);

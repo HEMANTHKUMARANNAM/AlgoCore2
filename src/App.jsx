@@ -9,6 +9,7 @@ import DynamicExam from './pages/Exam/DynamicExam';
 import TestsPage from './pages/Exam/TestsPage';
 import TestsList from './pages/Admin/TestsList';
 import TestManage from './pages/Admin/TestManage';
+import ExamMonitor from './pages/Admin/ExamMonitor';
 
 const HomePage = lazy(() => import('./pages/HomePage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
@@ -55,6 +56,8 @@ function App() {
               <Route path="/test" element={<TestsPage/>} />
 
               <Route path="/examwindow/:testid" element={<DynamicExam/>} />
+
+              <Route path="/exammonitor/:testid" element={<ExamMonitor/>} />
 
 
 

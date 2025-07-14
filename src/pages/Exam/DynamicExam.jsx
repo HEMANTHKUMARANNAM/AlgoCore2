@@ -5,11 +5,15 @@ import { ref, get, set, child } from "firebase/database";
 import { useParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
+import FullscreenTracker from "../FullscreenTracker";
+
 const DynamicExam = () => {
-  const [stage, setStage] = useState("loading"); // 'loading', 'instructions', 'exam', 'warning', 'completed', 'resume'
+  const [stage, setStage] = useState("loading"); // 'loading', 'instructions', 'exam', 'warning', 'completed', 'resume', 'blocked'
   const [Questions, setQuestions] = useState([]);
   const [examStatus, setExamStatus] = useState(null);
   const [startTime, setStartTime] = useState(null);
+  const [violation, setviolation] = useState(null);
+  const [isViolationReady, setIsViolationReady] = useState(false); // New state
   const containerRef = useRef(null);
 
   const { testid } = useParams();
@@ -25,16 +29,22 @@ const DynamicExam = () => {
       if (statusSnapshot.exists()) {
         const statusData = statusSnapshot.val();
 
+        // If exam is blocked
+        if (statusData.status === "blocked") {
+          setStage("blocked");
+          return true;
+        }
+
         // If exam is completed
         if (statusData.status === "completed" || statusData.completed === true) {
           setStage("completed");
           return true;
         }
 
-        console.log( statusData );
+        console.log(statusData);
 
         // If exam was started but not completed
-        if (statusData.startTime ) {
+        if (statusData.startTime) {
           setStage("resume");
           setStartTime(statusData.startTime);
           return false;
@@ -46,6 +56,42 @@ const DynamicExam = () => {
       return false;
     }
   };
+  const checkviolation = async () => {
+    try {
+      const violationRef = ref(database, `Exam/${testid}/Properties2/Progress/${user.uid}`);
+      const violationSnapshot = await get(violationRef);
+
+      if (violationSnapshot.exists()) {
+        const violationData = violationSnapshot.val();
+        setviolation(violationData);
+      } else {
+        setviolation(0);
+      }
+      setIsViolationReady(true); // Mark as ready
+    } catch (error) {
+      console.error("Error checking exam status:", error);
+    }
+  };
+
+  useEffect(() => {
+    const saveAndCheckViolations = async () => {
+      // Only run if the initial violation count has been loaded.
+      if (!isViolationReady) return;
+
+      // Save the updated violation count to Firebase
+      if (testid && user && violation !== null) {
+        const violationRef = ref(database, `Exam/${testid}/Properties2/Progress/${user.uid}`);
+        await set(violationRef, violation);
+      }
+
+      // Check if the exam should be blocked
+      if (violation >= 3) {
+        markExamBlocked();
+      }
+    };
+
+    saveAndCheckViolations();
+  }, [violation, isViolationReady, testid, user]);
 
   // Function to check exam duration
   const checkExamDuration = async () => {
@@ -87,6 +133,8 @@ const DynamicExam = () => {
         if (questionSnapshot.exists()) {
           setQuestions(questionSnapshot.val());
         }
+
+        await checkviolation();
 
         // Only move to next stage after all data is loaded
         setStage(prev => prev === "loading" ? "instructions" : prev);
@@ -198,8 +246,23 @@ const DynamicExam = () => {
     }
   };
 
+  // Function to mark exam as blocked due to violations
+  const markExamBlocked = async () => {
+    try {
+      const statusRef = ref(database, `Exam/${testid}/Properties/Progress/${user.uid}`);
+      await set(statusRef, {
+        status: "blocked",
+
+        endTime: new Date().toISOString(),
+      });
+      setStage("blocked");
+    } catch (error) {
+      console.error("Error marking exam as blocked:", error);
+    }
+  };
+
   return (
-    <div ref={containerRef} className="w-full h-screen bg-gray-100">
+    <div ref={containerRef} className="h-screen bg-gray-100 dark:bg-gray-900">
       {stage === "loading" && (
         <div className="flex flex-col items-center justify-center h-full p-6 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
@@ -225,40 +288,60 @@ const DynamicExam = () => {
       )}
 
       {stage === "exam" && (
-        <Exam2
-          Questions={Questions}
-          onExamComplete={markExamCompleted} // Pass the completion handler
-          startTime={startTime}
-        />
+        <>
+          <FullscreenTracker violation={violation} setviolation={setviolation} testid={testid} />
+          <Exam2
+            Questions={Questions}
+            onExamComplete={markExamCompleted} // Pass the completion handler
+            startTime={startTime}
+          />
+        </>
       )}
 
       {stage === "warning" && (
-        <div className="flex flex-col items-center justify-center h-full bg-red-100 text-center p-6">
-          <h2 className="text-2xl font-bold text-red-700 mb-4">Warning!</h2>
-          <p className="text-red-600 mb-4">
-            You have exited full screen. Please return to full screen to continue.
-          </p>
-          <button
-            onClick={returnToFullScreen}
-            className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700"
-          >
-            Return to Full Screen
-          </button>
-        </div>
+        <>
+          <FullscreenTracker violation={violation} setviolation={setviolation} testid={testid} />
+          <div className="flex items-center justify-center h-full bg-gray-100 dark:bg-gray-900">
+            <div className="w-full max-w-3xl mx-auto p-8 rounded-xl shadow-lg bg-white dark:bg-gray-800 text-center space-y-6">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Fullscreen Exit Detected</h1>
+              <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300">You exited fullscreen mode. Please return to fullscreen to continue your test.</p>
+              <p className="text-sm text-gray-500">Exiting fullscreen repeatedly may lead to blocking.</p>
+              <button
+                onClick={returnToFullScreen}
+                className="px-6 py-3 rounded-md font-semibold text-white transition-colors bg-red-600 hover:bg-red-700"
+              >
+                Return to Fullscreen
+              </button>
+            </div>
+          </div>
+        </>
       )}
 
       {stage === "resume" && (
-        <div className="flex flex-col items-center justify-center h-full bg-yellow-100 text-center p-6">
-          <h2 className="text-2xl font-bold text-yellow-700 mb-4">Resume Exam</h2>
-          <p className="text-yellow-600 mb-4">
-            You have a pending exam. Please resume where you left off.
+        <div className="flex items-center justify-center h-full bg-gray-100 dark:bg-gray-900">
+          <div className="w-full max-w-3xl mx-auto p-8 rounded-xl shadow-lg bg-white dark:bg-gray-800 text-center space-y-6">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Resume Your Test</h1>
+            <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300">Looks like you got interrupted. You can continue your test where you left off.</p>
+            <p className="text-sm text-gray-500">Your progress has been saved. Please enter fullscreen again to continue.</p>
+            <button
+              onClick={returnToFullScreen}
+              className="px-6 py-3 rounded-md font-semibold text-white transition-colors bg-yellow-500 hover:bg-yellow-600"
+            >
+              Resume Test
+            </button>
+          </div>
+        </div>
+      )}
+
+      {stage === "blocked" && (
+        <div className="flex flex-col items-center justify-center h-full bg-red-100 text-center p-6">
+          <h2 className="text-3xl font-bold text-red-800 mb-4">Exam Blocked</h2>
+          <p className="text-red-700 mb-6 text-lg">
+            You have exceeded the maximum number of violations. Your exam has been blocked.
           </p>
-          <button
-            onClick={returnToFullScreen}
-            className="px-6 py-3 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700"
-          >
-            Resume Exam
-          </button>
+          <div className="text-sm text-red-600">
+            <p>Please contact the administrator.</p>
+          </div>
         </div>
       )}
 

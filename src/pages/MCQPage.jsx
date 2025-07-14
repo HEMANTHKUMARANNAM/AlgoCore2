@@ -1,7 +1,11 @@
 'use client';
 
-import React, { useState , useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTheme } from '../context/ThemeContext';
+import { useParams } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { ref, get, child, set } from "firebase/database";
+import { database } from "../firebase";
 
 // SVG Icons
 const Icons = {
@@ -22,68 +26,44 @@ const Icons = {
   )
 };
 
-function MCQPage( {data} ) {
+function MCQPage({ data }) {
   const [activeTab, setActiveTab] = useState('description');
   const [selectedOption, setSelectedOption] = useState(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [leftPanelWidth, setLeftPanelWidth] = useState(45);
   const { theme } = useTheme();
 
-    // const [data, setData] = useState(null);
+  const { user } = useAuth();
 
+  const { course, subcourse, questionId } = useParams();
 
-      // // Fetch question data from Firebase
-      // useEffect(() => {
-    
-      //   const fetchData = async () => {
-      //     try {
-      //       // Single call for both question data and next question URL
-      //       console.log(`AlgoCore/${String(course).replace(" ", "")}/${subcourse}/${questionId}`)
-      //       const questionRef = ref(
-      //         database,
-      //         `AlgoCore/${String(course).replace(" ", "")}/${subcourse}/${questionId}`);
-    
-      //       // Get both question data and all questions in parallel
-      //       const [questionSnapshot] = await Promise.all([
-      //         get(questionRef),
-      //       ]);
-    
-      //       console.log( questionSnapshot.val() );
-    
-      //       if (questionSnapshot.exists()) {
-      //         const question = questionSnapshot.val();
-    
-      //         console.log(question);
-      //         setData(question);
-      //       }
-      //     } catch (error) {
-      //       console.error("Error fetching data from Firebase:", error);
-      //     }
-      //   };
-    
-      //   fetchData();
-      //   setLoading(false);
-    
-      // }, []); // Dependencies adjusted
-    
-    
-    
-  
+  useEffect(() => {
+    const loadUserAnswer = async () => {
+      if (user && course && subcourse && questionId) {
+        const answerRef = ref(database, `userprogress/${user.uid}/${course}/${subcourse}/${questionId}`);
+        const snapshot = await get(answerRef);
+        if (snapshot.exists()) {
+          const userAnswer = snapshot.val();
+          setSelectedOption(data.correctAnswer);
+          setIsSubmitted(true);
+        }
+      }
+    };
+    loadUserAnswer();
+  }, [user, course, subcourse, questionId]);
 
-//  const data = {
-//   questionname: "Patter1",
-//   statement: "What is the output of the following Python code?\n\nx = [1, 2, 3]\ny = x\nx.append(4)\nprint(y)",
-//   options: [
-//     "[1, 2, 3]",
-//     "[1, 2, 3, 4]",
-//     "[4]",
-//     "Error"
-//   ],
-//   correctAnswer: 1,
-//   explanation: "In Python, assigning one list to another variable (y = x) does not create a copy; both refer to the same list object. So, modifying `x` also affects `y`, resulting in [1, 2, 3, 4].",
-//   difficulty: "Easy"
-// };
+  const handleSubmit2 = async () => {
+    if (selectedOption === null || !user || !course || !subcourse || !questionId) return;
 
+    const answerRef = ref(database, `userprogress/${user.uid}/${course}/${subcourse}/${questionId}`);
+    try {
+      await set(answerRef, true);
+      setIsSubmitted(true);
+      console.log("saved");
+    } catch (error) {
+      console.error("Failed to save answer:", error);
+    }
+  };
 
   const handleOptionSelect = (index) => {
     if (!isSubmitted) {
@@ -91,8 +71,8 @@ function MCQPage( {data} ) {
     }
   };
 
-  const handleSubmit = () => {
-    setIsSubmitted(true);
+  const handleSubmit = async () => {
+    await handleSubmit2();
   };
 
   return (
@@ -105,11 +85,10 @@ function MCQPage( {data} ) {
         >
           <div className="flex border-b border-gray-200 dark:border-gray-700">
             <button
-              className={`px-6 py-4 text-sm font-medium ${
-                activeTab === 'description' 
-                  ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-500' 
-                  : 'text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400'
-              }`}
+              className={`px-6 py-4 text-sm font-medium ${activeTab === 'description'
+                ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-500'
+                : 'text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400'
+                }`}
               onClick={() => setActiveTab('description')}
             >
               <div className="flex items-center gap-2">
@@ -128,7 +107,7 @@ function MCQPage( {data} ) {
                     <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded-full text-sm font-medium">
                       {data.difficulty}
                     </span>
-                    
+
                     <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -172,11 +151,11 @@ function MCQPage( {data} ) {
         <div className="flex-1 flex flex-col overflow-hidden bg-gray-50 dark:bg-gray-900">
           <div className="p-6 overflow-y-auto h-full">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Select the correct answer</h2>
-            
+
             <div className="space-y-4 mb-8">
               {data.options.map((option, index) => {
                 let optionClasses = "p-4 border rounded-lg cursor-pointer transition-colors duration-150 ";
-                
+
                 if (isSubmitted) {
                   if (index === data.correctAnswer) {
                     optionClasses += "bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700 text-green-800 dark:text-green-200";
@@ -186,13 +165,13 @@ function MCQPage( {data} ) {
                     optionClasses += "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300";
                   }
                 } else {
-                  optionClasses += selectedOption === index 
+                  optionClasses += selectedOption === index
                     ? "bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-700 text-blue-800 dark:text-blue-200"
                     : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-blue-300 dark:hover:border-blue-600";
                 }
 
                 return (
-                  <div 
+                  <div
                     key={index}
                     className={optionClasses}
                     onClick={() => handleOptionSelect(index)}
@@ -210,11 +189,10 @@ function MCQPage( {data} ) {
               <button
                 onClick={handleSubmit}
                 disabled={selectedOption === null || isSubmitted}
-                className={`px-6 py-3 rounded-lg font-medium text-sm ${
-                  selectedOption === null || isSubmitted
-                    ? 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
-                    : 'bg-blue-600 hover:bg-blue-700 text-white'
-                } transition-colors duration-150`}
+                className={`px-6 py-3 rounded-lg font-medium text-sm ${selectedOption === null || isSubmitted
+                  ? 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                  : 'bg-blue-600 hover:bg-blue-700 text-white'
+                  } transition-colors duration-150`}
               >
                 {isSubmitted ? 'Submitted' : 'Submit Answer'}
               </button>
@@ -224,8 +202,8 @@ function MCQPage( {data} ) {
                   <div className="flex items-center">
                     <Icons.CheckCircle2 className="text-blue-500 dark:text-blue-400 mr-3 flex-shrink-0" />
                     <span className="text-blue-800 dark:text-blue-200">
-                      {selectedOption === data.correctAnswer 
-                        ? "Correct! Well done!" 
+                      {selectedOption === data.correctAnswer
+                        ? "Correct! Well done!"
                         : `Incorrect. The correct answer is ${String.fromCharCode(65 + data.correctAnswer)}.`}
                     </span>
                   </div>

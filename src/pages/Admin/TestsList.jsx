@@ -91,7 +91,7 @@ const TestsList = () => {
 
   const filteredTests = tests.filter(test => {
     const testStatus = test.Properties?.status || 'NotStarted';
-    const matchesSearch = test.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = test?.name?.toLowerCase().includes(searchTerm.toLowerCase());
     
     // Filter based on active tab
     if (activeTab === 'available-tests') return matchesSearch && testStatus === 'Started';
