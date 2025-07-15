@@ -11,6 +11,7 @@ import TestManage from './pages/Admin/TestManage';
 import ExamMonitor from './pages/Admin/ExamMonitor';
 import ProtectedRoute from './ProtectedRoute';
 import CompilerPage from './pages/CompilerPage';
+import LoadingPage from './pages/LoadingPage';
 
 const HomePage = lazy(() => import('./pages/HomePage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
@@ -34,7 +35,7 @@ function App() {
 
         {/* Main Content Area */}
         <main className="flex-1 overflow-auto">
-          <Suspense fallback={<div className="p-4">Loading...</div>}>
+          <Suspense fallback={<LoadingPage message="Loading page, please wait..." />}>
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/admin" element={  <ProtectedRoute requireAdmin={true}><TestsList /></ProtectedRoute>} />

@@ -6,6 +6,7 @@ import { ref, onValue, set, push, update, remove, get } from 'firebase/database'
 import { database } from '../../firebase';
 import Questions from './Questions';
 import Students from './Students';
+import LoadingPage from '../LoadingPage';
 
 const TestManage = () => {
   const { testId } = useParams();
@@ -130,9 +131,7 @@ const TestManage = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
+      <LoadingPage message="Loading test, please wait..."/>
     );
   }
 

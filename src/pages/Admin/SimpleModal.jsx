@@ -3,6 +3,7 @@ import { XMarkIcon, PlusIcon } from '@heroicons/react/24/outline';
 
 import { database } from "../../firebase";
 import { ref, get } from "firebase/database";
+import LoadingPage from '../LoadingPage';
 const SimpleModal = ({ isOpen, onClose, onAddQuestions, questions: propQuestions = [] }) => {
   const [activeTab, setActiveTab] = useState('select');
   const [questions, setQuestions] = useState([]);
@@ -172,10 +173,7 @@ const SimpleModal = ({ isOpen, onClose, onAddQuestions, questions: propQuestions
                   {/* Questions list */}
                   <div className="space-y-4 max-h-96 overflow-y-auto mb-4">
                     {isLoading ? (
-                      <div className="text-center py-4">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500 mx-auto"></div>
-                        <p className="mt-2 text-sm text-gray-500">Loading questions...</p>
-                      </div>
+                      <LoadingPage message="Loading questions, please wait..."/>
                     ) : filteredQuestions.length === 0 ? (
                       <p className="text-center text-gray-500 py-4">
                         {searchTerm ? 'No questions match your search.' : 'No questions available.'}

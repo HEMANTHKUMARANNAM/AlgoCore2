@@ -3,10 +3,10 @@ import { ref, onValue , get} from "firebase/database";
 import { database } from "../../firebase";
 import MCQPage from "./MCQPage";
 import CodePage from "./CodePage";
+import LoadingPage from "../LoadingPage";
 
 
 
-const Loading = () => <p>Loading...</p>;
 
 const DynamicComponent = ( {question} ) => {
   const [data, setData] = useState(null);
@@ -59,7 +59,7 @@ const DynamicComponent = ( {question} ) => {
 
 
 
-  if (loading) return <p>Loading....</p>;
+  if (loading) return <LoadingPage message="Loading question, please wait..." />;
 
   if (!data) return <p>No data found</p>;
 

@@ -6,6 +6,7 @@ import { useParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
 import FullscreenTracker from "../FullscreenTracker";
+import LoadingPage from "../LoadingPage";
 
 const DynamicExam = () => {
   const [stage, setStage] = useState("loading"); // 'loading', 'instructions', 'exam', 'warning', 'completed', 'resume', 'blocked'
@@ -264,10 +265,7 @@ const DynamicExam = () => {
   return (
     <div ref={containerRef} className="h-screen bg-gray-100 dark:bg-gray-900">
       {stage === "loading" && (
-        <div className="flex flex-col items-center justify-center h-full p-6 text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-          <p className="text-lg">Loading exam...</p>
-        </div>
+        <LoadingPage message="Loading exam, please wait..."/>
       )}
 
       {stage === "instructions" && (
