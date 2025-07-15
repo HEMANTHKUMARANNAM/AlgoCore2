@@ -18,6 +18,7 @@ const TestManage = () => {
   const [activeTab, setActiveTab] = useState('questions'); // 'students', 'questions' or 'settings'
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [testTitle, setTestTitle] = useState('');
+  const [duration, setDuration] = useState(60);
   const [isSaving, setIsSaving] = useState(false);
 
   // Fetch test data
@@ -43,6 +44,8 @@ const TestManage = () => {
         });
 
         // Update local state
+        setTestTitle(data.name || '');
+        setDuration(data.duration || 60);
       } else {
         setTest(null);
       }
@@ -320,17 +323,23 @@ const TestManage = () => {
                     Duration (minutes)
                   </label>
                   <div className="mt-1">
-                    <input
-                      type="number"
-                      id="duration"
-                      min="1"
-                      value={test.duration || 60}
-                      onChange={(e) => {
-                        const duration = Math.max(1, parseInt(e.target.value) || 0);
-                        handleSaveTest({ ...test, duration });
-                      }}
-                      className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
-                    />
+                    <div className="relative rounded-md shadow-sm">
+                      <input
+                        type="number"
+                        id="duration"
+                        min="1"
+                        value={duration}
+                        onChange={(e) => {
+                          const newDuration = Math.max(1, parseInt(e.target.value) || 0);
+                          setDuration(newDuration);
+                        }}
+                        onBlur={() => handleSaveTest({ duration })}
+                        className="focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white pr-16 text-gray-900 dark:text-gray-100"
+                      />
+                      <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                        <span className="text-gray-500 sm:text-sm">minutes</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
 

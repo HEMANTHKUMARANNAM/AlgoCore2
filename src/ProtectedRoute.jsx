@@ -51,7 +51,9 @@ const ProtectedRoute = ({ children, requireAdmin = false, requireUser = false })
     return () => unsubscribe();
   }, [requireAdmin, requireUser, user]);
 
-  if (authStatus === "loading") return <div>Loading...</div>;
+  if (authStatus === "loading") return <div className="flex justify-center items-center h-64">
+    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+  </div>;
   if (authStatus === "unauthenticated") return <div>Sign-in required</div>;
   if (authStatus === "unauthorized") return <div>Page not available for you</div>;
 
