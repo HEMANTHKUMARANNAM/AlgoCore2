@@ -25,7 +25,7 @@ const Navbar = () => {
   const menuItems = [
     { label: 'Home', href: '/' },
     { label: 'Courses', href: '/courses' },
-    !isAdmin && { label: 'Tests', href: '/test' },
+    !isAdmin && user && { label: 'Tests', href: '/test' },
     isAdmin && { label: 'Admin', href: '/admin' },
     { label: 'Compiler', href: '/compiler' },
   ].filter(Boolean); // This will remove any falsy values (like null or false)

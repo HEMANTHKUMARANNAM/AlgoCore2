@@ -52,6 +52,7 @@ const TestsList = () => {
         createdAt: new Date().toISOString(),
         questions: [],
         Eligible: {},
+        duration: 60,
         Properties: {
           status: 'NotStarted'
         }

@@ -5,16 +5,16 @@ import { useNavigate, Link } from 'react-router-dom';
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { login, googleSignIn, loading, isAuthenticated } = useAuth();
+  const { login, googleSignIn, loading, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = useState('');
   const [showWelcome, setShowWelcome] = useState(false);
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (user) {
       navigate('/profile');
     }
-  }, [isAuthenticated, navigate]);
+  }, [user, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -179,14 +179,7 @@ const LoginPage = () => {
           <span>Continue with Google</span>
         </button>
 
-        <div className="text-center mt-4">
-          <p className="text-xs text-gray-600 dark:text-gray-400">
-            Don't have an account?{' '}
-            <Link to="/register" className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300">
-              Sign up here
-            </Link>
-          </p>
-        </div>
+      
       </div>
     </div>
   );

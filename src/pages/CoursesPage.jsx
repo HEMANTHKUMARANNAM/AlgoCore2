@@ -14,12 +14,12 @@ const iconMap = {
 };
 
 const CourseCard = ({ course }) => (
-  <div className="bg-gradient-to-br from-white/80 to-gray-100/80 dark:from-gray-800/80 dark:to-gray-900/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50 dark:border-gray-700/50 shadow-lg hover:shadow-xl transition-shadow duration-300 h-full">
+  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border-2 border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-300 h-full flex flex-col hover:border-blue-400 dark:hover:border-blue-500">
     <div className="text-blue-600 dark:text-blue-400 mb-4">
       {iconMap[course.id] || <FaCuttlefish className="w-12 h-12" />}
     </div>
     <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{course.title}</h3>
-    <p className="text-gray-600 dark:te`xt-gray-400 mb-4">{course.description}</p>
+    <p className="text-gray-600 dark:text-gray-400 mb-4 flex-grow">{course.description}</p>
 
     <div className="mt-4 mb-6">
       {/* <div className="flex justify-between text-sm mb-1">
@@ -36,7 +36,7 @@ const CourseCard = ({ course }) => (
 
     <Link
       to={`/course/${course.id}`}
-      className="inline-flex items-center text-blue-600 dark:text-blue-400 font-medium hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
+      className="inline-flex items-center text-blue-600 dark:text-blue-400 font-medium hover:text-blue-800 dark:hover:text-blue-300 transition-colors mt-auto"
     >
       {course.progress > 0 ? 'Continue Learning' : 'Start Learning'}
       <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -77,7 +77,7 @@ const CoursesPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-900">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
       </div>
     );
@@ -85,7 +85,7 @@ const CoursesPage = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-900">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">Error</h2>
           <p className="text-gray-600 dark:text-gray-400">{error}</p>
@@ -95,19 +95,16 @@ const CoursesPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 relative overflow-x-hidden flex flex-col">
-      <main className="flex-grow">
-        {/* Decorative Elements */}
-        <div className="absolute top-0 left-0 w-full h-[40vh] bg-gradient-to-br from-blue-600/10 to-purple-600/10 dark:from-blue-900/30 dark:to-purple-900/30 rounded-b-[60%] z-0" />
-        <div className="absolute top-[20vh] right-0 w-64 h-64 bg-gradient-to-r from-yellow-400/20 to-red-500/20 dark:from-yellow-600/20 dark:to-red-600/20 rounded-full blur-3xl z-0" />
-
+    <div className="min-h-screen bg-white dark:bg-gray-900 relative overflow-x-hidden flex flex-col">
+      <div className="absolute top-0 left-0 w-full h-full bg-grid-pattern dark:bg-grid-pattern"></div>
+      <main className="relative flex-grow z-10">
         {/* Hero Section */}
-        <section className="relative z-10 flex items-center justify-center py-16 px-4 sm:px-6 lg:px-8">
+        <section className="flex items-center justify-center py-16 px-4 sm:px-6 lg:px-8">
           <div className="w-full flex flex-col items-center justify-center text-center">
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-2">
               Explore Our Courses
             </h1>
-            <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-[#4285F4] mb-4">
+            <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-blue-600 dark:text-blue-400 mb-4">
               Master Programming Through Practice
             </h2>
             <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto mb-8">

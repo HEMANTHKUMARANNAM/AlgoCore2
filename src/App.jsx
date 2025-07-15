@@ -10,6 +10,7 @@ import TestsList from './pages/Admin/TestsList';
 import TestManage from './pages/Admin/TestManage';
 import ExamMonitor from './pages/Admin/ExamMonitor';
 import ProtectedRoute from './ProtectedRoute';
+import CompilerPage from './pages/CompilerPage';
 
 const HomePage = lazy(() => import('./pages/HomePage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
@@ -42,6 +43,7 @@ function App() {
 
               <Route path="/problem/:course/:subcourse/:questionId" element={ <ProtectedRoute requireUser={true}> <DynamicComponent /></ProtectedRoute>} />
               <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/compiler" element={<CompilerPage />} />
               <Route path="/courses" element={<CoursesPage />} />
               <Route path="/course/:course" element={<CoursePage />} />
               <Route path="/about" element={<AboutPage />} />
