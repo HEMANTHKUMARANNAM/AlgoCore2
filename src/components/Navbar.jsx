@@ -6,6 +6,8 @@ import { database } from '../firebase';
 import { ref, get } from 'firebase/database';
 
 import { FaSun as SunIcon, FaMoon as MoonIcon, FaUserCircle as UserCircleIcon } from 'react-icons/fa';
+import logoLight from '../assets/LOGO.png';
+import logoDark from '../assets/LOGO-1.png';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -89,8 +91,9 @@ const Navbar = () => {
     <nav className="fixed top-0 left-0 right-0 h-16 bg-white dark:bg-dark-secondary border-b border-gray-200 dark:border-dark-tertiary z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
         <div className="flex items-center gap-6">
-          <Link to="/" className="flex items-center">
-            <h1 className="text-xl font-bold text-[#202124] dark:text-white">AlgoCore</h1>
+          <Link to="/" className="flex items-center gap-2">
+            <img src={theme === 'dark' ? logoDark : logoLight} alt="AlgoCore Logo" className="h-8 w-auto" />
+            <span className="text-xl font-bold text-[#202124] dark:text-white">AlgoCore</span>
           </Link>
 
           <div className="hidden md:flex items-center gap-6">

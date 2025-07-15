@@ -3,6 +3,7 @@ import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
 import { ref, get, child } from "firebase/database";
 import { database } from "../firebase";
+import SignInRequiredPage from "./SignInRequiredPage";
 import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -15,6 +16,7 @@ import {
   Tooltip,
   Legend
 } from 'chart.js';
+import LoadingPage from "./LoadingPage";
 
 ChartJS.register(
   CategoryScale,
@@ -506,25 +508,12 @@ function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
+      <LoadingPage/>
     );
   }
 
   if (!user) {
-    return (
-      <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">
-            Please sign in to view your profile
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400">
-            You need to be authenticated to access this page.
-          </p>
-        </div>
-      </div>
-    );
+    return <SignInRequiredPage />;
   }
 
   if (!profileData) {

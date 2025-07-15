@@ -7,6 +7,8 @@ import { database } from '../firebase';
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from '../context/AuthContext';
 
+import LoadingPage from './LoadingPage';
+
 const CoursePage = () => {
   const [courseData, setCourseData] = useState(null);
   const [practiceTopics, setPracticeTopics] = useState([]);
@@ -192,7 +194,8 @@ const CoursePage = () => {
   }, [course, user]);
 
   if (loading) {
-    return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
+    <LoadingPage />
+    // return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
   }
 
   if (error) {

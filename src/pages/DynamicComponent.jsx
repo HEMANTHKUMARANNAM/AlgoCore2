@@ -4,6 +4,7 @@ import { database } from "../firebase";
 import { useParams, useNavigate } from "react-router-dom";
 import CodePage from "./CodePage";
 import MCQPage from "./MCQPage";
+import LoadingPage from "./LoadingPage";
 
 
 
@@ -77,9 +78,9 @@ const DynamicComponent = () => {
 
 
 
-  if (loading) return <p>Loading....</p>;
+  if (loading) return <LoadingPage/>;
 
-  if (!data) return <p>No data found</p>;
+  if (!data) return <LoadingPage message= "No data found" />;
 
   return (
     <div>
