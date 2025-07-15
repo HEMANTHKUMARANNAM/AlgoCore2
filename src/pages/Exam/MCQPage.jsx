@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
 import { database } from '../../firebase';
-import { ref, set } from 'firebase/database';
+import { ref, set, get } from 'firebase/database';
 
 const Icons = {
   FileText: () => (
@@ -31,14 +31,51 @@ function MCQPage({ data }) {
   const [activeTab, setActiveTab] = useState('description');
   const [selectedOption, setSelectedOption] = useState(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [initialOption, setInitialOption] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [leftPanelWidth, setLeftPanelWidth] = useState(45);
   const { theme } = useTheme();
 
-  
+  useEffect(() => {
+    const fetchSubmission = async () => {
+      if (!user || !data?.questionname) {
+        setIsLoading(false);
+        return;
+      }
+      setIsLoading(true);
+      try {
+        const submissionRef = ref(database, `ExamCode/${user.uid}/${testid}/${data.questionname}`);
+        const snapshot = await get(submissionRef);
+        if (snapshot.exists()) {
+          const savedOption = snapshot.val();
+          setSelectedOption(savedOption);
+          setInitialOption(savedOption);
+          setIsSubmitted(true);
+        } else {
+          setSelectedOption(null);
+          setInitialOption(null);
+          setIsSubmitted(false);
+        }
+      } catch (error) {
+        console.error("Failed to fetch submission:", error);
+        setSelectedOption(null);
+        setInitialOption(null);
+        setIsSubmitted(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSubmission();
+  }, [data, user, testid]);
 
   const handleOptionSelect = (index) => {
-    if (!isSubmitted) {
-      setSelectedOption(index);
+    if (isLoading) return;
+    setSelectedOption(index);
+    // If user selects a different option, it's no longer considered 'submitted'
+    // until they hit submit again.
+    if (index !== initialOption) {
+      setIsSubmitted(false);
     }
   };
 
@@ -47,17 +84,18 @@ function MCQPage({ data }) {
 
     setIsSubmitted(true);
     try {
-      const answerRef = ref(database, `ExamSubmissions/${user.uid}/${testid}/${data.questionname}/`);
-      await set(answerRef, {
-        selectedOption: selectedOption,
-        timestamp: new Date().toISOString(),
-      });
-      // Optionally, you can add a state to show a generic "Answer saved" message
+      const answerRef = ref(database, `ExamCode/${user.uid}/${testid}/${data.questionname}/`);
+      const answerRef2 = ref(database, `ExamSubmissions/${user.uid}/${testid}/${data.questionname}/`);
+      await set(answerRef, selectedOption);
+      await set(answerRef2, selectedOption+1 === data.correctAnswer ? 'true' : 'false');
+      setInitialOption(selectedOption); // Update initial option to the new submission
     } catch (error) {
       console.error("Error saving answer: ", error);
-      setIsSubmitted(false); // Optionally allow user to try again if save fails
+      setIsSubmitted(false); // Allow user to try again if save fails
     }
   };
+
+  const showSubmitButton = selectedOption !== null && selectedOption !== initialOption;
 
   return (
     <div className="flex flex-col h-screen w-full bg-white dark:bg-gray-900">
@@ -70,8 +108,8 @@ function MCQPage({ data }) {
           <div className="flex border-b border-gray-200 dark:border-gray-700">
             <button
               className={`px-6 py-4 text-sm font-medium ${activeTab === 'description'
-                  ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-500'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400'
+                ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-500'
+                : 'text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400'
                 }`}
               onClick={() => setActiveTab('description')}
             >
@@ -99,13 +137,6 @@ function MCQPage({ data }) {
                     <h2 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">Statement</h2>
                     <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{data?.question}</p>
                   </div>
-
-                  {isSubmitted && (
-                    <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800">
-                      <h2 className="text-lg font-semibold mb-2 text-blue-800 dark:text-blue-200">Explanation</h2>
-                      <p className="text-blue-700 dark:text-blue-300">{data?.explanation}</p>
-                    </div>
-                  )}
                 </div>
               </div>
             )}
@@ -152,18 +183,17 @@ function MCQPage({ data }) {
               })}
             </div>
 
-            <div className="mt-auto">
-              <button
-                onClick={handleSubmit}
-                disabled={selectedOption === null || isSubmitted}
-                className={`px-6 py-3 rounded-lg font-medium text-sm ${selectedOption === null || isSubmitted
-                    ? 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
-                    : 'bg-blue-600 hover:bg-blue-700 text-white'
-                  } transition-colors duration-150`}
-              >
-                {isSubmitted ? 'Submitted' : 'Submit Answer'}
-              </button>
-
+            <div className="mt-auto pt-6">
+              {showSubmitButton ? (
+                <button
+                  onClick={handleSubmit}
+                  className="w-full px-6 py-3 rounded-lg font-medium text-sm bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150"
+                >
+                  Submit Answer
+                </button>
+              ) : isSubmitted && selectedOption !== null ? (
+                <p className="text-center text-green-600 dark:text-green-400 font-medium">Answer Submitted</p>
+              ) : null}
             </div>
           </div>
         </div>

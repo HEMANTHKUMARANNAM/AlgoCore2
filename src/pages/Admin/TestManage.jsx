@@ -66,39 +66,25 @@ const TestManage = () => {
 
       if (!snapshot.exists()) {
         console.log('No student data found in Firebase');
-        return { eligibleStudents: [], enrolledStudents: [] };
+        return { eligibleStudents: {}, enrolledStudents: [] };
       }
 
       const eligibleData = snapshot.val();
       console.log('Raw student data from Firebase:', eligibleData);
 
-      // Handle all possible data formats
-      let eligibleStudents = [];
-
-      if (Array.isArray(eligibleData)) {
-        eligibleStudents = eligibleData.map(student => ({
-          ...student,
-          id: student.id || `student-${Math.random().toString(36).substr(2, 9)}`
-        }));
-      } else if (eligibleData && typeof eligibleData === 'object') {
-        eligibleStudents = Object.entries(eligibleData).map(([key, value]) => {
-          // Handle both {"email": "name"} and {"id": {studentObject}} formats
-          if (typeof value === 'string') {
-            return { email: key, name: value, id: `firebase-${key}` };
-          } else {
-            return { ...value, id: key };
-          }
-        });
-      }
+      // The data is already in the desired { name: email } format or similar.
+      // We will ensure it's a clean object.
+      const eligibleStudents = (typeof eligibleData === 'object' && eligibleData !== null) ? eligibleData : {};
 
       console.log('Processed students:', eligibleStudents);
       return {
         eligibleStudents,
-        enrolledStudents: eligibleStudents.map(s => s.id)
+        // enrolledStudents can be derived from the keys of the eligible object
+        enrolledStudents: Object.keys(eligibleStudents)
       };
     } catch (error) {
       console.error('Error fetching students:', error);
-      return { eligibleStudents: [], enrolledStudents: [] };
+      return { eligibleStudents: {}, enrolledStudents: [] };
     }
   };
 
