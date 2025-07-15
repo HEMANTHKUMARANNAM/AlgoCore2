@@ -44,7 +44,7 @@ function MCQPage({ data }) {
       }
       setIsLoading(true);
       try {
-        const submissionRef = ref(database, `ExamCode/${user.uid}/${testid}/${data.questionname}`);
+        const submissionRef = ref(database, `ExamCode/${testid}/${user.uid}/${data.questionname}`);
         const snapshot = await get(submissionRef);
         if (snapshot.exists()) {
           const savedOption = snapshot.val();
@@ -84,8 +84,8 @@ function MCQPage({ data }) {
 
     setIsSubmitted(true);
     try {
-      const answerRef = ref(database, `ExamCode/${user.uid}/${testid}/${data.questionname}/`);
-      const answerRef2 = ref(database, `ExamSubmissions/${user.uid}/${testid}/${data.questionname}/`);
+      const answerRef = ref(database, `ExamCode/${testid}/${user.uid}/${data.questionname}/`);
+      const answerRef2 = ref(database, `ExamSubmissions/${testid}/${user.uid}/${data.questionname}/`);
       await set(answerRef, selectedOption);
       await set(answerRef2, selectedOption+1 === data.correctAnswer ? 'true' : 'false');
       setInitialOption(selectedOption); // Update initial option to the new submission

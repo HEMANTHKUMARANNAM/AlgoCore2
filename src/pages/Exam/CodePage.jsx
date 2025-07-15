@@ -44,7 +44,7 @@ function CodePage({ question }) {
     // Function to fetch submission status from Firebase
   const fetchSubmissionStatus = useCallback(async () => {
     try {
-      const resultRef = ref(database, `ExamSubmissions/${user.uid}/${testid}/${question}/`);
+      const resultRef = ref(database, `ExamSubmissions/${testid}/${user.uid}/${question}/`);
       const snapshot = await get(resultRef);
       
       if (snapshot.exists()) {
@@ -113,7 +113,7 @@ const handleSubmit2 = async () => {
   // setOutput(finalResult);
 
   // ✅ Save final result to Firebase Realtime Database
-  const resultRef = ref(database, `ExamSubmissions/${user.uid}/${testid}/${question}/`); // 'submissions' node, new entry
+  const resultRef = ref(database, `ExamSubmissions/${testid}/${user.uid}/${question}/`); // 'submissions' node, new entry
 
   await set(resultRef, finalResult );
 
@@ -188,7 +188,7 @@ const handleSubmit2 = async () => {
   const loadCode = useCallback(async () => {
     try {
       const dbRef = ref(database);
-      const codeKey = `ExamCode/${user.uid}/${testid}/${question}/${selectedLanguage}`;
+      const codeKey = `ExamCode/${testid}/${user.uid}/${question}/${selectedLanguage}`;
       const snapshot = await get(child(dbRef, codeKey));
 
       console.log(snapshot.val());
@@ -212,7 +212,7 @@ const handleSubmit2 = async () => {
   // Fixed saveCode function
   const saveCode = useCallback(async (codeToSave) => {
     try {
-      const codeKey = `ExamCode/${user.uid}/${testid}/${question}/${selectedLanguage}`;
+      const codeKey = `ExamCode/${testid}/${user.uid}/${question}/${selectedLanguage}`;
       const dbRef = ref(database, codeKey);
       await set(dbRef, codeToSave);
       console.log("Code auto-saved successfully!");
