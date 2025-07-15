@@ -2,7 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import { database } from '../firebase';
+import { ref, get } from 'firebase/database';
+
 import { FaSun as SunIcon, FaMoon as MoonIcon, FaUserCircle as UserCircleIcon } from 'react-icons/fa';
+
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
@@ -10,6 +14,8 @@ const Navbar = () => {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const { user, loading, logout } = useAuth();
+
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const authDropdownRef = useRef(null);
   const authButtonRef = useRef(null);
@@ -19,10 +25,39 @@ const Navbar = () => {
   const menuItems = [
     { label: 'Home', href: '/' },
     { label: 'Courses', href: '/courses' },
-    { label: 'Tests', href: '/test' },
-    { label: 'Admin', href: '/admin' },
+    !isAdmin && { label: 'Tests', href: '/test' },
+    isAdmin && { label: 'Admin', href: '/admin' },
     { label: 'Compiler', href: '/compiler' },
-  ];
+  ].filter(Boolean); // This will remove any falsy values (like null or false)
+
+
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (!user) {
+        setIsAdmin(false);
+        return;
+      }
+
+      try {
+        const userRef = ref(database, `Admins/${user.uid}`);
+        const snapshot = await get(userRef);
+
+        if (snapshot.exists()) {
+          setIsAdmin(true);
+        } else {
+          setIsAdmin(false);
+        }
+      } catch (error) {
+        console.error("Error fetching user admin status:", error);
+        setIsAdmin(false);
+      }
+    };
+
+    checkAdminStatus();
+  }, [user]);
+
+
+
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -64,8 +99,8 @@ const Navbar = () => {
                 key={index}
                 to={item.href}
                 className={`text-sm font-medium transition-colors ${location.pathname === item.href
-                    ? 'text-[#4285F4]'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-[#4285F4] dark:hover:text-gray-100'
+                  ? 'text-[#4285F4]'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-[#4285F4] dark:hover:text-gray-100'
                   }`}
               >
                 {item.label}
@@ -160,8 +195,8 @@ const Navbar = () => {
                   key={index}
                   to={item.href}
                   className={`flex items-center gap-3 px-4 py-3 hover:bg-[#4285F4]/10 hover:text-[#4285F4] transition-colors ${location.pathname === item.href
-                      ? 'bg-[#4285F4]/10 text-[#4285F4]'
-                      : 'text-gray-700 dark:text-gray-200'
+                    ? 'bg-[#4285F4]/10 text-[#4285F4]'
+                    : 'text-gray-700 dark:text-gray-200'
                     }`}
                   onClick={() => setIsMenuOpen(false)}
                 >

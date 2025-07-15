@@ -1,7 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
+import { useAuth } from '../../context/AuthContext';
+import { database } from '../../firebase';
+import { ref, set } from 'firebase/database';
 
 const Icons = {
   FileText: () => (
@@ -22,11 +26,15 @@ const Icons = {
 };
 
 function MCQPage({ data }) {
+  const { testid } = useParams();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('description');
   const [selectedOption, setSelectedOption] = useState(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [leftPanelWidth, setLeftPanelWidth] = useState(45);
   const { theme } = useTheme();
+
+  
 
   const handleOptionSelect = (index) => {
     if (!isSubmitted) {
@@ -34,8 +42,21 @@ function MCQPage({ data }) {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    if (selectedOption === null || !user) return;
+
     setIsSubmitted(true);
+    try {
+      const answerRef = ref(database, `ExamSubmissions/${user.uid}/${testid}/${data.questionname}/`);
+      await set(answerRef, {
+        selectedOption: selectedOption,
+        timestamp: new Date().toISOString(),
+      });
+      // Optionally, you can add a state to show a generic "Answer saved" message
+    } catch (error) {
+      console.error("Error saving answer: ", error);
+      setIsSubmitted(false); // Optionally allow user to try again if save fails
+    }
   };
 
   return (
@@ -48,11 +69,10 @@ function MCQPage({ data }) {
         >
           <div className="flex border-b border-gray-200 dark:border-gray-700">
             <button
-              className={`px-6 py-4 text-sm font-medium ${
-                activeTab === 'description'
+              className={`px-6 py-4 text-sm font-medium ${activeTab === 'description'
                   ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-500'
                   : 'text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400'
-              }`}
+                }`}
               onClick={() => setActiveTab('description')}
             >
               <div className="flex items-center gap-2">
@@ -107,13 +127,10 @@ function MCQPage({ data }) {
                 let optionClasses = "p-4 border rounded-lg cursor-pointer transition-colors duration-150 ";
 
                 if (isSubmitted) {
-                  if (index === data?.correctAnswer) {
-                    optionClasses += "bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700 text-green-800 dark:text-green-200";
-                  } else if (index === selectedOption && index !== data?.correctAnswer) {
-                    optionClasses += "bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-700 text-red-800 dark:text-red-200";
-                  } else {
-                    optionClasses += "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300";
-                  }
+                  // Keep the selected option highlighted but don't show correct/incorrect
+                  optionClasses += selectedOption === index
+                    ? "bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-700 text-blue-800 dark:text-blue-200"
+                    : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300";
                 } else {
                   optionClasses += selectedOption === index
                     ? "bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-700 text-blue-800 dark:text-blue-200"
@@ -139,27 +156,14 @@ function MCQPage({ data }) {
               <button
                 onClick={handleSubmit}
                 disabled={selectedOption === null || isSubmitted}
-                className={`px-6 py-3 rounded-lg font-medium text-sm ${
-                  selectedOption === null || isSubmitted
+                className={`px-6 py-3 rounded-lg font-medium text-sm ${selectedOption === null || isSubmitted
                     ? 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
                     : 'bg-blue-600 hover:bg-blue-700 text-white'
-                } transition-colors duration-150`}
+                  } transition-colors duration-150`}
               >
                 {isSubmitted ? 'Submitted' : 'Submit Answer'}
               </button>
 
-              {isSubmitted && (
-                <div className="mt-6 p-4 rounded-lg bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800">
-                  <div className="flex items-center">
-                    <Icons.CheckCircle2 />
-                    <span className="ml-3 text-blue-800 dark:text-blue-200">
-                      {selectedOption === data.correctAnswer
-                        ? "Correct! Well done!"
-                        : `Incorrect. The correct answer is ${String.fromCharCode(65 + data?.correctAnswer)}.`}
-                    </span>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         </div>

@@ -15,6 +15,7 @@ import { ref, get, set, child } from "firebase/database";
 
 import AnimatedTestResults from '../AnimatedTestResults';
 import { executeCode } from '../api';
+import { useAuth } from '../../context/AuthContext';
 
 
 
@@ -37,13 +38,13 @@ function CodePage({ question }) {
    // Added missing state
 
   const { testid } = useParams();
-
+  const { user } = useAuth();
     const [submissionStatus, setSubmissionStatus] = useState('not_attended'); // Added state for status
 
     // Function to fetch submission status from Firebase
   const fetchSubmissionStatus = useCallback(async () => {
     try {
-      const resultRef = ref(database, `ExamSubmissions/${testid}/${question}/`);
+      const resultRef = ref(database, `ExamSubmissions/${user.uid}/${testid}/${question}/`);
       const snapshot = await get(resultRef);
       
       if (snapshot.exists()) {

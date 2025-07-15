@@ -3,13 +3,13 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 import Navbar from './components/Navbar';
 import DynamicComponent from './pages/DynamicComponent';
-import Exam2 from './pages/Exam/Exam2';
-import FullscreenTracker from './pages/FullscreenTracker';
+
 import DynamicExam from './pages/Exam/DynamicExam';
 import TestsPage from './pages/Exam/TestsPage';
 import TestsList from './pages/Admin/TestsList';
 import TestManage from './pages/Admin/TestManage';
 import ExamMonitor from './pages/Admin/ExamMonitor';
+import ProtectedRoute from './ProtectedRoute';
 
 const HomePage = lazy(() => import('./pages/HomePage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
@@ -36,11 +36,11 @@ function App() {
           <Suspense fallback={<div className="p-4">Loading...</div>}>
             <Routes>
               <Route path="/" element={<HomePage />} />
-              <Route path="/admin" element={<TestsList />} />
-              <Route path="/testedit/:testId" element={<TestManage />} />
+              <Route path="/admin" element={  <ProtectedRoute requireAdmin={true}><TestsList /></ProtectedRoute>} />
+              <Route path="/testedit/:testId" element={  <ProtectedRoute requireAdmin={true}><TestManage /></ProtectedRoute>} />
 
 
-              <Route path="/problem/:course/:subcourse/:questionId" element={<DynamicComponent />} />
+              <Route path="/problem/:course/:subcourse/:questionId" element={ <ProtectedRoute requireUser={true}> <DynamicComponent /></ProtectedRoute>} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/courses" element={<CoursesPage />} />
               <Route path="/course/:course" element={<CoursePage />} />
@@ -49,15 +49,11 @@ function App() {
               <Route path="/login" element={<LoginPage />} />
               <Route path="*" element={<NotFoundPage />} />
 
+              <Route path="/test" element={ <ProtectedRoute requireUser={true}><TestsPage/></ProtectedRoute>} />
 
-               <Route path="/examhem" element={<Exam2 />} />
-              <Route path="/full" element={<FullscreenTracker />} />
-              <Route path="/dynamicexam" element={<DynamicExam/>} />
-              <Route path="/test" element={<TestsPage/>} />
+              <Route path="/examwindow/:testid" element={ <ProtectedRoute requireUser={true}><DynamicExam/></ProtectedRoute>} />
 
-              <Route path="/examwindow/:testid" element={<DynamicExam/>} />
-
-              <Route path="/exammonitor/:testid" element={<ExamMonitor/>} />
+              <Route path="/exammonitor/:testid" element={  <ProtectedRoute requireAdmin={true}><ExamMonitor/></ProtectedRoute>} />
 
 
 
