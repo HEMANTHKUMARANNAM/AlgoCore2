@@ -3,7 +3,7 @@ name: Deploy React App to GitHub Pages
 on:
   push:
     branches:
-      - main  # or your default branch
+      - main  # Change if your default branch is different
 
 jobs:
   build-deploy:
@@ -23,11 +23,15 @@ jobs:
 
     - name: Inject environment variables
       run: |
-
-        echo "Groq"=${{ secrets.ADDGroq}} >> .env
+        echo "Groq=${{ secrets.Groq }}" >> .env
 
     - name: Build
       run: npm run build
+
+    - name: Configure Git identity
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
 
     - name: Deploy
       run: npm run deploy
