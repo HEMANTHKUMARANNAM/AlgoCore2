@@ -24,7 +24,7 @@ jobs:
     - name: Inject environment variables
       run: |
 
-        echo "Groq"=${{ secrets.Groq}}" >> .env
+        echo "Groq"=${{ secrets.ADDGroq}} >> .env
 
     - name: Build
       run: npm run build
