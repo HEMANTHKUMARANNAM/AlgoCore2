@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 export default function AnimatedTestResults({ testResults }) {
   const total = testResults.length;
   const passed = testResults.filter(r => r.passed).length;
+  const failed = testResults.filter(r => !r.passed && r.status !== 'running').length;
   const [animatedCount, setAnimatedCount] = useState(0);
 
   const isProcessing = testResults.some(r => r.status === 'running');
@@ -46,8 +47,10 @@ export default function AnimatedTestResults({ testResults }) {
             style={{ width: `${total ? (animatedCount / total) * 100 : 0}%` }}
           />
         </div>
-        <div className="text-lg font-semibold text-gray-900 dark:text-white">
-          {animatedCount} / {total} Passed
+        <div className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-4">
+          <span className="text-green-500">{animatedCount} Passed</span>
+          <span className="text-red-500">{failed} Failed</span>
+          <span className="text-gray-500">{total} Total</span>
         </div>
       </div>
 

@@ -18,15 +18,6 @@ function HomePage() {
     { name: 'TypeScript', icon: '📘' },
   ];
 
-  const handleGoogleSignIn = async () => {
-    try {
-      await googleSignIn();
-      navigate('/profile'); // Redirect to profile after successful sign-in
-    } catch (error) {
-      console.error("Google Sign-In failed", error);
-      // Optionally, show an error to the user
-    }
-  };
 
   if (loading) {
     return <LoadingPage />;
@@ -58,7 +49,7 @@ function HomePage() {
               </button>
             ) : (
               <button
-                onClick={handleGoogleSignIn}
+                onClick={ () => navigate('/login') }
                 className="flex items-center justify-center gap-3 bg-blue-600 text-white font-semibold pl-2 pr-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300 shadow-md w-full sm:w-auto"
               >
                 <div className="bg-white p-1 rounded-full">

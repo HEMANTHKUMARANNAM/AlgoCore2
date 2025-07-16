@@ -13,7 +13,7 @@ const LANGUAGE_VERSIONS = {
 
 
 export const executeCode = async (language, sourceCode, input) => {
-  
+
   const response = await API.post("/execute", {
     language: language,
     version: LANGUAGE_VERSIONS[language],
@@ -26,7 +26,56 @@ export const executeCode = async (language, sourceCode, input) => {
     stdin: input,  // This is where we add the user input to the request payload
   });
   // console.log( typeof(response.data.run.output) );
-  console.log( response.data );
+  console.log(response.data);
   return response.data;
 };
 
+
+
+
+
+
+
+const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+const GROQ_API_KEY =  process.env.Groq; // move to .env in real apps
+
+export async function getGroqResponse({ prompt, code, mode = 'suggestions' }) {
+  const systemPrompt =
+    mode === 'suggestions'
+      ? `You are an assistant that gives only hints and clues (never direct answers or code) to help a student solve coding questions. Be strict and never include actual code in your responses. Always respond in a bullet point format with clear, numbered hints. The format must be consistent across all users and over time. Never change it.`
+      : `You are an assistant that reviews code based solely on time complexity, space complexity, and provides a performance rating. Never include any code or code suggestions in your responses. Always respond in the following strict format:
+1. Time Complexity: [Your analysis]
+2. Space Complexity: [Your analysis]
+3. Overall Rating: [Score out of 10, with reasoning]
+This format must be followed exactly, for every response, no matter the context or user. No exceptions.`;
+
+  const userPrompt =
+    mode === 'suggestions'
+      ? `Prompt:\n${prompt}\n\nCode:\n${code}\n\nGive helpful suggestions or hints only.`
+      : `Prompt:\n${prompt}\n\nCode:\n${code}\n\nPlease give time/space complexity and rate the code.`;
+
+  try {
+    const res = await axios.post(
+      GROQ_API_URL,
+      {
+        model: 'llama-3.1-8b-instant',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt }
+        ],
+        temperature: 0.7
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${GROQ_API_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    return res.data.choices[0]?.message?.content;
+  } catch (err) {
+    console.error('❌ Groq API Error:', err.response?.data || err.message);
+    return 'Error contacting Groq API';
+  }
+}

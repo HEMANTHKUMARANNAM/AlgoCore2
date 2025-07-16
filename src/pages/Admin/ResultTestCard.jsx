@@ -15,7 +15,7 @@ export default function ResultTestCard({ test }) {
       </p>
       <div className="mt-4">
         <button
-          onClick={() => navigate(`/testresults/${test.id}`)}
+          onClick={() => navigate(`/adminresults/${test.id}`)}
           className="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
         >
           Show Results

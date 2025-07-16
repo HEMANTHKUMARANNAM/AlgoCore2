@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { ref, onValue, get, update, set } from 'firebase/database';
 import { database } from '../../firebase';
 import toast from 'react-hot-toast';
+import LoadingPage from '../LoadingPage';
 
 const ExamMonitor = () => {
     const [monitoredData, setMonitoredData] = useState([]);

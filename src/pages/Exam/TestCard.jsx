@@ -1,9 +1,11 @@
 // components/TestCard.jsx
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 const TestCard = ({ test, onStart }) => {
   console.log(test);
 
+  const navigate = useNavigate();
   const status = test?.Properties?.status || "Unknown";
 
   return (
@@ -33,10 +35,10 @@ const TestCard = ({ test, onStart }) => {
 
         {status === "Completed" && (
           <button
-            className="w-full bg-green-500 text-white py-2 px-4 rounded-md cursor-not-allowed"
-            disabled
+            className="w-full bg-green-500 text-white py-2 px-4 rounded-md "
+            onClick={() => navigate(`/studentresults/${test.id}`)}
           >
-            Completed
+            view results
           </button>
         )}
         

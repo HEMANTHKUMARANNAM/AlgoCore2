@@ -13,6 +13,7 @@ import { ref, get, set, child } from "firebase/database";
 import AnimatedTestResults from './AnimatedTestResults';
 import { executeCode } from './api';
 import { useAuth } from '../context/AuthContext';
+import AISuggestionsTab from '../components/AISuggestions';
 
 function CodePage() {
   const [code, setCode] = useState("");
@@ -47,7 +48,7 @@ function CodePage() {
   const logSubmission = async (status, submittedCode) => {
     console.log("logging submission");
     console.log(user?.user?.email);
-    
+
     if (!user?.user?.uid) return;
 
     const timestamp = new Date().toISOString();
@@ -136,11 +137,11 @@ function CodePage() {
   const runCode = async () => {
     const testCases = testCasesrun;
     console.log(testCases);
-    
+
     try {
       const results = [];
       const display = [];
-      
+
       for (const { input: testInput, expectedOutput } of testCases) {
         const { run: result } = await executeCode(selectedLanguage, code, testInput);
         const resultlist = result.output ? result.output.split("\n") : ["No output received."];
@@ -322,7 +323,7 @@ function CodePage() {
   // Fixed Monaco Editor layout handling
   const handleEditorDidMount = useCallback((editor) => {
     editorRef.current = editor;
-    
+
     // Clean up previous observer
     if (resizeObserverRef.current) {
       resizeObserverRef.current.disconnect();
@@ -429,13 +430,12 @@ function CodePage() {
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
   return (
-    <div className="min-h-screen h-screen w-full flex bg-white dark:bg-dark-primary select-none">
-      {/* Left Panel */}
+    <div className="h-screen w-full flex bg-white dark:bg-dark-primary select-none">      {/* Left Panel */}
       <div
         className="bg-white dark:bg-dark-secondary border-r border-gray-200 dark:border-dark-tertiary flex flex-col overflow-hidden h-full"
         style={{ width: `${leftPanelWidth}%` }}
       >
-        <div className="flex border-b border-gray-200 dark:border-dark-tertiary">
+        <div className="flex whitespace-nowrap border-b border-gray-200 dark:border-dark-tertiary overflow-x-auto">
           <button
             className={`px-4 py-3 text-sm font-medium ${activeTab === 'description' ? 'text-[#4285F4] border-b-2 border-[#4285F4]' : 'text-gray-600 dark:text-gray-400 hover:text-[#4285F4] dark:hover:text-white'
               }`}
@@ -473,6 +473,15 @@ function CodePage() {
             <div className="flex items-center gap-2">
               <Icons.Clock />
               Submissions
+            </div>
+          </button>
+          <button
+            className={`px-4 py-3 text-sm font-medium ${activeTab === 'suggestions' ? 'text-[#4285F4] border-b-2 border-[#4285F4]' : 'text-gray-600 dark:text-gray-400 hover:text-[#4285F4] dark:hover:text-white'}`}
+            onClick={() => setActiveTab('suggestions')}
+          >
+            <div className="flex items-center gap-2">
+              <Icons.Play />
+              AI Suggestions
             </div>
           </button>
         </div>
@@ -656,6 +665,13 @@ function CodePage() {
                 </table>
               )}
             </div>
+          )}
+          {activeTab === 'suggestions' && (
+            <AISuggestionsTab
+              questionData={questionData}
+              userCode={code}
+              userId={user.user.uid}
+            />
           )}
         </div>
       </div>

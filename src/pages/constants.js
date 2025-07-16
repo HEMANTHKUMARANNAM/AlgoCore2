@@ -81,13 +81,9 @@ export const languageTemplates = {
         return null;
     }
 }`,
-  cpp: `// C++ does not have a built-in 'any' type in the same way. 
-// For this example, we'll use a string to represent a flexible return type.
-#include <string>
-#include <vector>
-
-std::string solve(std::string word, int k) {
+  cpp: `
+int main() {
     // Write your solution here
-    return "";
+    return 0;
 }`
 };

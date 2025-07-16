@@ -1,6 +1,7 @@
 import React from 'react';
 import { FiEdit } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
+import LoadingPage from '../LoadingPage';
 
 export default function EditTestCard({ test, startTest }) {
   const navigate = useNavigate();
