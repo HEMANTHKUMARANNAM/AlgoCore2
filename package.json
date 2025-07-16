@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d build -u \"github-actions[bot] <github-actions[bot]@users.noreply.github.com>\" -r https://x-access-token:${GH_TOKEN}@github.com/hemanthkumarannaddam/AlgoCore2.git",
+    "deploy": "gh-pages -d build",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
