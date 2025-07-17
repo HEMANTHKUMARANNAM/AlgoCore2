@@ -4,6 +4,8 @@ import { onAuthStateChanged } from "firebase/auth";
 import { ref, get } from "firebase/database";
 import { useAuth } from "./context/AuthContext";
 import LoadingPage from "./pages/LoadingPage";
+import SignInRequiredPage from "./pages/SignInRequiredPage";
+import UnauthorizedPage from "./pages/UnauthorizedPage";
 
 
 
@@ -53,8 +55,8 @@ const ProtectedRoute = ({ children, requireAdmin = false, requireUser = false })
   }, [requireAdmin, requireUser, user]);
 
   if (authStatus === "loading") return <LoadingPage message="Loading page, please wait..." />;
-  if (authStatus === "unauthenticated") return <div>Sign-in required</div>;
-  if (authStatus === "unauthorized") return <div>Page not available for you</div>;
+  if (authStatus === "unauthenticated") return <SignInRequiredPage/>;
+  if (authStatus === "unauthorized") return <UnauthorizedPage/> ;
 
   return children;
 };

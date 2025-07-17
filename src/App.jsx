@@ -1,5 +1,6 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 
 import PageLayout from './components/PageLayout';
 import DynamicComponent from './pages/DynamicComponent';
@@ -26,6 +27,7 @@ const LoginPage = lazy(() => import('./pages/LoginPage'));
 function App() {
   return (
     <BrowserRouter basename='/AlgoCore2'>
+      <Toaster position="top-center" reverseOrder={false} />
       <PageLayout>
         <Suspense fallback={<LoadingPage message="Loading page, please wait..." />}>
           <Routes>
@@ -33,7 +35,7 @@ function App() {
             <Route path="/admin" element={<ProtectedRoute requireAdmin={true}><TestsList /></ProtectedRoute>} />
             <Route path="/testedit/:testId" element={<ProtectedRoute requireAdmin={true}><TestManage /></ProtectedRoute>} />
 
-            <Route path="/problem/:course/:subcourse/:questionId" element={<ProtectedRoute requireUser={true}> <DynamicComponent /></ProtectedRoute>} />
+            <Route path="/problem/:course/:subcourse/:questionId" element={<ProtectedRoute > <DynamicComponent /></ProtectedRoute>} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/compiler" element={<CompilerPage />} />
             <Route path="/courses" element={<CoursesPage />} />

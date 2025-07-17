@@ -6,6 +6,7 @@ const TestsSidebar = ({ activeTab, setActiveTab }) => {
     { id: 'available-tests', label: 'Available Tests', icon: '📝' },
     { id: 'results', label: 'Results', icon: '📊' },
     { id: 'edit-tests', label: 'Edit Tests', icon: '👥' },
+    // { id: 'add-questions', label: 'Add Questions', icon: '➕' },
   ];
 
   return (
