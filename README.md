@@ -40,19 +40,19 @@ A modern and responsive web application built using **React**. This project demo
 
 ### File Struture
 
-your-react-app/
-├── public/
-├── src/
-│   ├── assets/
-│   ├── components/
-│   ├── pages/
-│   ├── services/
-│   ├── App.js
-│   └── index.js
-├── .env
-├── .gitignore
-├── package.json
-└── README.md
+- your-react-app/
+- ├── public/
+- ├── src/
+- │   ├── assets/
+- │   ├── components/
+- │   ├── pages/
+- │   ├── services/
+- │   ├── App.js
+- │   └── index.js
+- ├── .env
+- ├── .gitignore
+- ├── package.json
+- └── README.md
 
 
 
