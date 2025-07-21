@@ -1,4 +1,14 @@
+
+import { database } from "../firebase";
+import { ref, get, set, child } from "firebase/database";
+
+
+
+
+
+
 import axios from "axios";
+// firebase.js
 
 const API = axios.create({
   baseURL: "https://emkc.org/api/v2/piston",
@@ -37,9 +47,17 @@ export const executeCode = async (language, sourceCode, input) => {
 
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const GROQ_API_KEY =  process.env.Groq; // move to .env in real apps
+let GROQ_API_KEY =   null; // move to .env in real apps
 
 export async function getGroqResponse({ prompt, code, mode = 'suggestions' }) {
+
+   const keyRef = child(ref(database), 'groq_api_key');
+    const keySnapshot = await get(keyRef);
+
+    GROQ_API_KEY= keySnapshot;
+
+
+
   const systemPrompt =
     mode === 'suggestions'
       ? `You are an assistant that gives only hints and clues (never direct answers or code) to help a student solve coding questions. Be strict and never include actual code in your responses. Always respond in a bullet point format with clear, numbered hints. The format must be consistent across all users and over time. Never change it.`

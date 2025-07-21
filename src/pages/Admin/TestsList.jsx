@@ -11,6 +11,7 @@ import EditTestCard from './EditTestCard';
 import AvailableTestCard from './AvailableTestCard';
 import ResultTestCard from './ResultTestCard';
 import LoadingPage from '../LoadingPage';
+import AddQuestions from './AddQuestions';
 
 const TestsList = () => {
   const navigate = useNavigate();
@@ -23,7 +24,7 @@ const TestsList = () => {
   useEffect(() => {
     const db = getDatabase();
     const testsRef = ref(db, 'Exam');
-    
+
     const unsubscribe = onValue(testsRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
@@ -41,12 +42,12 @@ const TestsList = () => {
 
   const createNewTest = async () => {
     if (creatingTest) return;
-    
+
     setCreatingTest(true);
     try {
       const examsRef = ref(database, 'Exam');
       const newExamRef = push(examsRef);
-      
+
       await set(newExamRef, {
         id: newExamRef.key,
         name: `Exam-${newExamRef.key.slice(0, 5)}`,
@@ -58,7 +59,7 @@ const TestsList = () => {
           status: 'NotStarted'
         }
       });
-      
+
       // Navigate to the test edit page
       navigate(`/testedit/${newExamRef.key}`);
     } catch (error) {
@@ -94,19 +95,19 @@ const TestsList = () => {
   const filteredTests = tests.filter(test => {
     const testStatus = test.Properties?.status || 'NotStarted';
     const matchesSearch = test?.name?.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     // Filter based on active tab
     if (activeTab === 'available-tests') return matchesSearch && testStatus === 'Started';
     if (activeTab === 'results') return matchesSearch && testStatus === 'Completed';
     if (activeTab === 'edit-tests') return matchesSearch && testStatus === 'NotStarted';
-    
+
     return matchesSearch;
   });
 
   return (
     <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
       <TestsSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
-      
+
       <div className="flex-1 overflow-y-auto p-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Tests</h1>
@@ -132,6 +133,8 @@ const TestsList = () => {
 
         {loading ? (
           <LoadingPage message="Loading tests, please wait..." />
+        ) : activeTab === 'add-questions' ? (
+          <AddQuestions />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredTests.map((test) => (
