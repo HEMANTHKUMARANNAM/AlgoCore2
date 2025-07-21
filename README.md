@@ -1,27 +1,67 @@
-# Coding Platform (React.js Only)
+# 📦 AlgoCore
 
-This project has been converted to use only React.js (with Create React App) and React Router for navigation. UI and components remain unchanged from the original version.
+A modern and responsive web application built using **React**. This project demonstrates component-based architecture, reusable UI elements, and best practices in front-end development.
 
-## Getting Started
+## 🚀 Demo
 
-1. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-2. **Run the app:**
-   ```bash
-   npm start
-   ```
+[Live Demo](https://hemanthkumarannam.github.io/AlgoCore2)
 
-## Features
-- All UI and logic are preserved from the original project.
-- Uses React Router for client-side routing.
-- Tailwind CSS for styling.
+## 📸 Screenshots
 
-## Notes
-- Vite and Next.js configs have been removed.
-- If you see any issues, check your `src` imports and routing in `App.jsx`.
+| Home Page | Dashboard |
+|-----------|-----------|
+| ![Home](./home.png) | ![Dashboard](./dashboard.png) |
 
----
+## 🧰 Tech Stack
 
-For further help, open an issue or contact the maintainer.
+- ⚛️ React
+- 🧱 HTML5 + CSS3
+- 🌀 Tailwind CSS
+
+
+## ✅ Features
+
+- 🔥 Responsive design
+- 🔍 Search and filter functionality
+- 🔐 Authentication (Login/Register)
+- 🎨 Theming support (Light/Dark mode)
+- 🧭 Routing with React Router
+- 📦 API integration
+- 🧪 Unit/Component Testing
+
+## 🛠️ Getting Started
+
+### Prerequisites
+
+- Node.js (>= 14.x)
+- npm or yarn
+
+
+
+### File Struture
+
+your-react-app/
+├── public/
+├── src/
+│   ├── assets/
+│   ├── components/
+│   ├── pages/
+│   ├── services/
+│   ├── App.js
+│   └── index.js
+├── .env
+├── .gitignore
+├── package.json
+└── README.md
+
+
+
+### Installation
+
+```bash
+git clone https://github.com/hemanthkumarannam/AlgoCore2.git
+cd your-react-app
+npm install
+# or
+yarn install
+
